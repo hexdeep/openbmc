@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {ArrowLeft} from '@element-plus/icons-vue';
 import {useColorMode} from '@vueuse/core';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
@@ -23,8 +24,13 @@ const isResetPasswordDialogOpen = ref(false)
 
 <template>
   <div class="flex flex-col gap-4 p-4">
-    <div class="text-xl font-bold">
-      {{t('settingsTitle')}}
+    <div class="card flex items-center gap-4">
+      <el-button :icon="ArrowLeft" @click="$router.back">
+        {{t('back')}}
+      </el-button>
+      <div class="text-lg">
+        {{t('settingsTitle')}}
+      </div>
     </div>
     <el-form class="card" label-width="auto">
       <el-form-item :label="t('theme')">

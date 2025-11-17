@@ -4,6 +4,14 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/login',
+      component: () => import('@/views/Login.vue'),
+    },
+    {
+      path: '/settings',
+      component: () => import('@/views/Setting.vue'),
+    },
+    {
       path: '/',
       component: () => import('@/views/NavbarLayout.vue'),
       children: [
@@ -16,12 +24,12 @@ const router = createRouter({
           component: () => import('@/views/DeviceList.vue'),
         },
         {
-          path: '/images',
+          path: 'images',
           component: () => import('@/views/ImageList.vue'),
         },
         {
-          path: '/settings',
-          component: () => import('@/views/SettingView.vue'),
+          path: 'file',
+          component: () => import('@/views/FileManage.vue'),
         },
       ],
     },

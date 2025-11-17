@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Monitor, Phone, Picture, Setting} from '@element-plus/icons-vue';
+import {DocumentCopy, Monitor, Phone, Picture, Setting} from '@element-plus/icons-vue';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 
@@ -11,6 +11,7 @@ const { t } = useI18n({ messages: {
     deviceList: '设备列表',
     imageList: '镜像列表',
     hideNavbar: '隐藏侧边栏',
+    fileManage: '文件管理',
     settings: '设置',
   },
 } })
@@ -36,6 +37,11 @@ const navbarItems: NavbarItem[] = [
     label: t('imageList'),
     icon: Picture,
     path: '/images',
+  },
+  {
+    label: t('fileManage'),
+    icon: DocumentCopy,
+    path: '/file',
   },
   {
     label: t('settings'),
