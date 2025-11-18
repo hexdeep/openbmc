@@ -15,7 +15,7 @@ const password = ref('')
 </script>
 
 <template>
-  <div class="h-screen flex justify-center items-center">
+  <div class="h-screen flex justify-center items-center bg-[url('/login-bg.png')] bg-center bg-cover">
     <div class="card flex flex-col gap-4">
       <div class="flex justify-between items-center">
         <div class="text-lg">{{t('title')}}</div>
@@ -26,7 +26,7 @@ const password = ref('')
           <el-input v-model="password" />
         </el-form-item>
       </el-form>
-      <div class="flex">
+      <div class="flex justify-end">
         <el-button>
           {{t('confirm')}}
         </el-button>
