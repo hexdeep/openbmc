@@ -20,8 +20,12 @@ func (h *Handler) Login(c echo.Context) error {
 		return c.JSON(400, Res("请求格式有误", nil))
 	}
 
+	h.Config.Mu.RLock()
+	password := h.Config.Password
+	h.Config.Mu.RUnlock()
+
 	if err := bcrypt.CompareHashAndPassword(
-		[]byte(h.GetPassword()), []byte(req.Password),
+		[]byte(password), []byte(req.Password),
 	); errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 		return c.JSON(401, Res("密码不正确", nil))
 	} else if err != nil {
@@ -29,7 +33,8 @@ func (h *Handler) Login(c echo.Context) error {
 		return c.JSON(500, Res("密码校验失败", nil))
 	}
 
-	if err := h.SetToken(token); err != nil {
+	token, err := h.NewToken(c.Request().Context())
+	if err != nil {
 		c.Error(err)
 		return c.JSON(500, Res("存储用户凭证失败", nil))
 	}

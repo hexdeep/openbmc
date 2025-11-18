@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"gorm.io/driver/sqlite"
@@ -28,14 +29,12 @@ func main() {
 		log.Fatalf("failed to auto migrate database: %v\n", err)
 	}
 
-	context := &Context{
-		Config: &config,
-		DB:     db,
-	}
+	handler := NewHandler(&config, make(chan *Log, 100), db)
 
-	go context.Log()
+	go handler.Log()
+	go handler.ClearToken(time.Duration(config.CleanerInterval) * time.Second)
 
-	if err := GetRouter(context).Start(config.Port); err != nil {
+	if err := GetRouter(handler).Start(config.Port); err != nil {
 		log.Fatalf("failed to start http server: %v\n", err)
 	}
 }

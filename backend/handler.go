@@ -4,26 +4,29 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
 )
 
-type Handler interface {
-	GetPassword() string
-	NewToken(context.Context) (string, error)
-	AuthToken(string, context.Context) error
+type ConfigWithMutex struct {
+	*Config
+	Mu sync.RWMutex
 }
 
-type Context struct {
-	Config *Config
+type Handler struct {
+	Config *ConfigWithMutex
 	Logs   chan *Log
 	*gorm.DB
 }
 
-func (c *Context) GetPassword() string {
-
-	return ""
+func NewHandler(config *Config, logs chan *Log, db *gorm.DB) *Handler {
+	return &Handler{
+		Config: &ConfigWithMutex{Config: config},
+		Logs:   logs,
+		DB:     db,
+	}
 }
 
 var (
@@ -32,16 +35,18 @@ var (
 	ErrTokenExpired  = errors.New("token expired")
 )
 
-func (c *Context) AuthToken(value string, ctx context.Context) error {
+func (h *Handler) AuthToken(value string, ctx context.Context) error {
 
 	id, err := strconv.Atoi(value)
 	if err != nil {
 		return ErrTokenInvalid
 	}
 
-	token, err := gorm.G[Token](c.DB).Where("id = ?", id).Take(ctx)
+	token, err := gorm.G[Token](h.DB).Where("id = ?", id).Take(ctx)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return ErrTokenNotFound
+	} else if err != nil {
+		return err
 	}
 
 	if time.Now().After(token.ExpiresAt) {
@@ -51,7 +56,13 @@ func (c *Context) AuthToken(value string, ctx context.Context) error {
 	return nil
 }
 
-func (c *Context) NewToken(ctx context.Context) (string, error) {
+func (h *Handler) NewToken(ctx context.Context) (string, error) {
 
-	return "", nil
+	token := Token{ExpiresAt: time.Now().Add(time.Duration(h.Config.TokenDuration) * time.Second)}
+
+	if err := gorm.G[Token](h.DB, gorm.WithResult()).Create(ctx, &token); err != nil {
+		return "", err
+	}
+
+	return strconv.Itoa(int(token.ID)), nil
 }
