@@ -12,7 +12,12 @@ import (
 
 func main() {
 
-	var config Config
+	config := Config{
+		Address:         ":8080",
+		DBFile:          "/data/data.db",
+		CleanerInterval: 600,
+		TokenDuration:   7 * 24 * 60,
+	}
 	if err := envconfig.Process("", &config); err != nil {
 		log.Fatalf("failed to load config: %v\n", err)
 	}
@@ -34,7 +39,7 @@ func main() {
 	go handler.Log()
 	go handler.ClearToken(time.Duration(config.CleanerInterval) * time.Second)
 
-	if err := GetRouter(handler).Start(config.Port); err != nil {
+	if err := GetRouter(handler).Start(config.Address); err != nil {
 		log.Fatalf("failed to start http server: %v\n", err)
 	}
 }

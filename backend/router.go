@@ -1,18 +1,20 @@
 package main
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+)
 
 func GetRouter(h *Handler) *echo.Echo {
 
 	r := echo.New()
+	r.Use(middleware.CORS())
 	r.Use(h.LoggerMiddleWare)
 
-	api := r.Group("/api")
-
-	pub := api.Group("")
+	pub := r.Group("")
 	pub.POST("/login", h.Login)
 
-	pro := api.Group("")
+	pro := r.Group("")
 	pro.Use(h.WithAuthToken)
 
 	soms := pro.Group("/soms")
@@ -22,7 +24,7 @@ func GetRouter(h *Handler) *echo.Echo {
 	files := pro.Group("/files")
 	files.GET("", h.ListFile)
 	files.POST("", h.UploadFile)
-	files.DELETE("", h.DeleteFile)
+	files.DELETE("/:id", h.DeleteFile)
 
 	return r
 }
