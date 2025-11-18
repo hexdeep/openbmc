@@ -28,14 +28,14 @@ func main() {
 		log.Fatalf("failed to auto migrate database: %v\n", err)
 	}
 
-	handler := &Handler{
+	context := &Context{
 		Config: &config,
 		DB:     db,
 	}
 
-	go handler.Logger()
+	go context.Log()
 
-	if err := GetRouter(handler).Start(config.Port); err != nil {
+	if err := GetRouter(context).Start(config.Port); err != nil {
 		log.Fatalf("failed to start http server: %v\n", err)
 	}
 }

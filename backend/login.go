@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -30,7 +29,6 @@ func (h *Handler) Login(c echo.Context) error {
 		return c.JSON(500, Res("密码校验失败", nil))
 	}
 
-	token := uuid.New().String()
 	if err := h.SetToken(token); err != nil {
 		c.Error(err)
 		return c.JSON(500, Res("存储用户凭证失败", nil))

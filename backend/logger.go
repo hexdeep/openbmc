@@ -9,12 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func (h *Handler) LoggerMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
+func (ctx *Context) LoggerMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		err := next(c)
 
-		h.Logs <- &Log{
+		ctx.Logs <- &Log{
 			Method: c.Request().Method,
 			Path:   c.Request().URL.Path,
 			Status: c.Response().Status,
@@ -24,11 +24,11 @@ func (h *Handler) LoggerMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (h *Handler) Logger() {
-	for l := range h.Logs {
+func (c *Context) Log() {
+	for l := range c.Logs {
 		ctx, canc := context.WithTimeout(context.Background(), 5*time.Second)
 		defer canc()
-		if err := gorm.G[Log](h.DB).Create(ctx, l); err != nil {
+		if err := gorm.G[Log](c.DB).Create(ctx, l); err != nil {
 			log.Printf("failed to store request log: %v\n", err)
 		}
 	}

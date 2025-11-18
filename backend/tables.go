@@ -3,11 +3,11 @@ package main
 import "time"
 
 var tables = []any{
-	new(Session),
+	new(Token),
 	new(Log),
 }
 
-type Session struct {
+type Token struct {
 	ID        uint      `gorm:"primarykey;comment:标识"`
 	CreatedAt time.Time `gorm:"not null;comment:创建时间"`
 	ExpiresAt time.Time `gorm:"not null;comment:过期时间"`

@@ -2,7 +2,7 @@ package main
 
 import "github.com/labstack/echo/v4"
 
-func GetRouter(h *Handler) *echo.Echo {
+func GetRouter(h Handler) *echo.Echo {
 
 	r := echo.New()
 	r.Use(h.LoggerMiddleWare)
