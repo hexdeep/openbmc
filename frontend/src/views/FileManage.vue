@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {usePersistedStore} from '@/stores/persisted';
 import {request} from '@/utils/axios';
 import {ArrowLeft, ArrowRight, Delete, Download} from '@element-plus/icons-vue';
 import {ref} from 'vue';
@@ -7,6 +8,7 @@ import {useI18n} from 'vue-i18n';
 import {useRoute} from 'vue-router';
 
 const route = useRoute()
+const persisted = usePersistedStore()
 
 interface Item {
   name: string;
@@ -76,7 +78,11 @@ function formatSize(row: Item) {
             </el-button>
           </template>
         </el-input>
-        <el-upload class="ms-auto">
+        <el-upload
+          class="ms-auto"
+          :action="`${persisted.serverAddr}/file`"
+          :on-success="load"
+        >
           <el-button>
             {{t('uploadFile')}}
           </el-button>

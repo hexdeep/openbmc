@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -8,13 +9,13 @@ import (
 )
 
 type ListLogRequest struct {
-	Time     *[2]time.Time `form:"time"`
-	ClientIP string        `form:"clientIp"`
-	Method   string        `form:"method"`
-	Path     string        `form:"path"`
-	Status   int           `form:"status"`
-	Page     int           `form:"page"`
-	Size     int           `form:"size"`
+	Time     *[2]time.Time `query:"time"`
+	ClientIP string        `query:"clientIp"`
+	Method   string        `query:"method"`
+	Path     string        `query:"path"`
+	Status   int           `query:"status"`
+	Page     int           `query:"page"`
+	Size     int           `query:"size"`
 }
 
 func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
@@ -27,6 +28,8 @@ func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
 		Path      string    `json:"path"`
 		Status    int       `json:"status"`
 	}
+
+	fmt.Println(r)
 
 	q := gorm.G[Log](h.DB).Scopes()
 
