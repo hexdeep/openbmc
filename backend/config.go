@@ -6,6 +6,7 @@ type Config struct {
 	DBFile          string
 	CleanerInterval uint
 	TokenDuration   uint
+	DefaultSize     int
 	SSL             SSLConfig
 }
 

@@ -18,14 +18,16 @@ type ConfigWithMutex struct {
 type Handler struct {
 	Config *ConfigWithMutex
 	Logs   chan *Log
+	*Paginator
 	*gorm.DB
 }
 
-func NewHandler(config *Config, logs chan *Log, db *gorm.DB) *Handler {
+func NewHandler(config *Config, logs chan *Log, paginator *Paginator, db *gorm.DB) *Handler {
 	return &Handler{
-		Config: &ConfigWithMutex{Config: config},
-		Logs:   logs,
-		DB:     db,
+		Config:    &ConfigWithMutex{Config: config},
+		Logs:      logs,
+		Paginator: paginator,
+		DB:        db,
 	}
 }
 

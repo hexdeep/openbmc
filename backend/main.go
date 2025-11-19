@@ -18,6 +18,7 @@ func main() {
 		DBFile:          "/data/data.db",
 		CleanerInterval: 600,
 		TokenDuration:   7 * 24 * 60,
+		DefaultSize:     10,
 	}
 	if err := envconfig.Process("", &config); err != nil {
 		log.Fatalf("failed to load config: %v\n", err)
@@ -36,7 +37,7 @@ func main() {
 		log.Fatalf("failed to auto migrate database: %v\n", err)
 	}
 
-	handler := NewHandler(&config, make(chan *Log, 100), db)
+	handler := NewHandler(&config, make(chan *Log, 100), NewPaginator(config.DefaultSize), db)
 
 	go handler.Log()
 	go handler.ClearToken(time.Duration(config.CleanerInterval) * time.Second)

@@ -27,8 +27,7 @@ func GetRouter(h *Handler) *echo.Echo {
 	files.POST("", h.UploadFile)
 	files.DELETE("/:id", h.DeleteFile)
 
-	logs := pro.Group("/logs")
-	logs.GET("", WithBind(h, ListLog))
+	pro.GET("/logs", WithBind(h, ListLog))
 
 	return r
 }
