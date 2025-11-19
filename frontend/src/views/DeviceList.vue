@@ -40,7 +40,7 @@ const testData: Device[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
+  <div class="max-w-5xl mx-auto flex flex-col gap-4 p-4">
 
     <div class="card flex flex-col gap-4">
       <div class="text-lg">

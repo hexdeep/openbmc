@@ -27,6 +27,8 @@ func GetRouter(h *Handler) *echo.Echo {
 	files.POST("", h.UploadFile)
 	files.DELETE("/:id", h.DeleteFile)
 
+	pro.GET("/powers", h.ListPower)
+	pro.GET("/optical-ports", h.ListOpticalPort)
 	pro.GET("/folder", h.GetFolder)
 	pro.POST("/folder", WithBind(h, CreateFolder))
 	pro.POST("/delete-folder", WithBind(h, DeleteFolder))

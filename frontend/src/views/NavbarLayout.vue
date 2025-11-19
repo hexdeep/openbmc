@@ -7,7 +7,7 @@ const isCollapse = ref(false)
 
 const { t } = useI18n({ messages: {
   zh: {
-    serverPanel: '服务器控制面板',
+    dashboard: '仪表板',
     deviceList: '设备列表',
     imageList: '镜像列表',
     hideNavbar: '隐藏侧边栏',
@@ -25,9 +25,9 @@ interface NavbarItem {
 
 const navbarItems: NavbarItem[] = [
   {
-    label: t('serverPanel'),
+    label: t('dashboard'),
     icon: Monitor,
-    path: '/server',
+    path: '/dashboard',
   },
   {
     label: t('deviceList'),
@@ -64,7 +64,7 @@ const navbarItems: NavbarItem[] = [
         <el-icon v-if="isCollapse">
           <Menu />
         </el-icon>
-        <span v-else>OpenBMC</span>
+        <span v-else>HexDeepBMC</span>
       </div>
       <el-menu-item v-for="item in navbarItems" :key="item.path" :index="item.path">
         <el-icon>
@@ -80,7 +80,7 @@ const navbarItems: NavbarItem[] = [
         <span>{{t('hideNavbar')}}</span>
       </el-menu-item>
     </el-menu>
-    <div class="grow min-w-0">
+    <div class="grow min-w-0 overflow-auto">
       <router-view>
       </router-view>
     </div>

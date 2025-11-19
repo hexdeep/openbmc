@@ -16,8 +16,8 @@ const router = createRouter({
       component: () => import('@/views/NavbarLayout.vue'),
       children: [
         {
-          path: 'server',
-          component: () => import('@/views/ServerView.vue'),
+          path: 'dashboard',
+          component: () => import('@/views/Dashboard.vue'),
         },
         {
           path: 'devices',

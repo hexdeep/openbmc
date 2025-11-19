@@ -71,7 +71,7 @@ func DeleteFolder(h *Handler, c echo.Context, r *struct {
 		return err
 	}
 
-	return c.JSON(200, Res("文件夹删除成功", true))
+	return c.JSON(200, Res("删除成功", true))
 }
 
 func (h *Handler) ListFile(c echo.Context) error {
