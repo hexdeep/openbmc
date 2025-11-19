@@ -2,6 +2,8 @@
 </script>
 
 <template>
-  <router-view>
-  </router-view>
+  <el-config-provider :button="{ plain: true }">
+    <router-view>
+    </router-view>
+  </el-config-provider>
 </template>

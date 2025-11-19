@@ -28,6 +28,8 @@ func GetRouter(h *Handler) *echo.Echo {
 	files.DELETE("/:id", h.DeleteFile)
 
 	pro.GET("/folder", h.GetFolder)
+	pro.POST("/folder", WithBind(h, CreateFolder))
+	pro.POST("/delete-folder", WithBind(h, DeleteFolder))
 	pro.GET("/logs", WithBind(h, ListLog))
 
 	return r

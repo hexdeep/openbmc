@@ -8,7 +8,7 @@ export const api = axios.create({
 export function request<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, data?: any): Promise<T> {
   return api.request({
     method, url,
-    params: method === 'GET' ? data : undefined,
+    params: ['GET', 'DELETE'].includes(method) ? data : undefined,
     data: ['POST', 'PUT', 'PATCH'].includes(method) ? data : undefined,
   })
 }

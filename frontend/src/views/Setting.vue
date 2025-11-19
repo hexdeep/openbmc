@@ -23,7 +23,7 @@ const isResetPasswordDialogOpen = ref(false)
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
+  <div class="max-w-5xl mx-auto flex flex-col gap-4 p-4">
     <div class="card flex items-center gap-4">
       <el-button :icon="ArrowLeft" @click="$router.back">
         {{t('back')}}
