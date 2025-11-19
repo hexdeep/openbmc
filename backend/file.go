@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -81,7 +82,30 @@ func (h *Handler) ListFile(c echo.Context) error {
 
 func (h *Handler) UploadFile(c echo.Context) error {
 
-	return nil
+	file, err := c.FormFile("file")
+	if err != nil {
+		return err
+	}
+
+	path := c.FormValue("path")
+
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	dst, err := os.Create(filepath.Join(h.Config.FilePath, path, file.Filename))
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	return c.JSON(200, Res("文件上传成功", true))
 }
 
 func (h *Handler) DeleteFile(c echo.Context) error {

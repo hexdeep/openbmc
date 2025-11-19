@@ -5,13 +5,15 @@ import {useI18n} from 'vue-i18n';
 const { t } = useI18n({ messages: {
   zh: {
     statusSummaryTitle: '状态总览',
-    deviceListTitle: '设备列表',
+    deviceListTitle: '在线设备列表',
     temperature: '温度',
     diskCapacity: '硬盘容量',
     powerStatus: '电源状态',
     operation: '操作',
     powerOn: '上电',
     powerOff: '下电',
+    powered: '在线',
+    notPowered: '下电',
     detail: '详情',
   },
 } })
@@ -25,7 +27,7 @@ interface Device {
 }
 
 const testStatus = [
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,
 ].map((v, i) => ({ id: i, status: v === 0 ? false : true }))
 
 const testData: Device[] = [
@@ -46,9 +48,9 @@ const testData: Device[] = [
       <div class="text-lg">
         {{t('statusSummaryTitle')}}
       </div>
-      <div class="flex gap-4">
+      <div class="grid grid-cols-12 gap-4">
         <el-tag v-for="s in testStatus" :key="s.id" :type="s.status ? 'success' : 'danger'">
-          {{s.id}}
+          {{s.id+1}} {{s.status ? t('powered') : t('notPowered')}}
         </el-tag>
       </div>
     </div>

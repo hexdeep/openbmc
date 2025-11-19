@@ -31,6 +31,7 @@ func GetRouter(h *Handler) *echo.Echo {
 	pro.GET("/optical-ports", h.ListOpticalPort)
 	pro.GET("/folder", h.GetFolder)
 	pro.POST("/folder", WithBind(h, CreateFolder))
+	pro.POST("/file", h.UploadFile)
 	pro.POST("/delete-folder", WithBind(h, DeleteFolder))
 	pro.GET("/logs", WithBind(h, ListLog))
 
