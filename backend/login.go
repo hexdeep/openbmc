@@ -15,8 +15,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	var req LoginRequest
-	if err := c.Bind(&req); err != nil {
-		c.Error(err)
+	if c.Bind(&req) != nil {
 		return c.JSON(400, Res("请求格式有误", nil))
 	}
 
@@ -29,22 +28,23 @@ func (h *Handler) Login(c echo.Context) error {
 	); errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 		return c.JSON(401, Res("密码不正确", nil))
 	} else if err != nil {
-		c.Error(err)
-		return c.JSON(500, Res("密码校验失败", nil))
+		return err
 	}
 
 	token, err := h.NewToken(c.Request().Context())
 	if err != nil {
-		c.Error(err)
-		return c.JSON(500, Res("存储用户凭证失败", nil))
+		return err
 	}
 
 	c.SetCookie(&http.Cookie{
 		Name:     "token",
 		Value:    token,
-		HttpOnly: true,
 		Secure:   true,
+		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
+		MaxAge:   24 * 60 * 60,
+		Domain:   "axogc.net",
+		Path:     "/",
 	})
 
 	return c.JSON(200, Res("登录成功", nil))

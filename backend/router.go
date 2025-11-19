@@ -8,6 +8,7 @@ import (
 func GetRouter(h *Handler) *echo.Echo {
 
 	r := echo.New()
+	r.HTTPErrorHandler = HTTPErrorHandler
 	r.Use(middleware.CORS())
 	r.Use(h.LoggerMiddleWare)
 
@@ -25,6 +26,9 @@ func GetRouter(h *Handler) *echo.Echo {
 	files.GET("", h.ListFile)
 	files.POST("", h.UploadFile)
 	files.DELETE("/:id", h.DeleteFile)
+
+	logs := pro.Group("/logs")
+	logs.GET("", WithBind(h, ListLog))
 
 	return r
 }

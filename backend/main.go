@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -21,6 +22,7 @@ func main() {
 	if err := envconfig.Process("", &config); err != nil {
 		log.Fatalf("failed to load config: %v\n", err)
 	}
+	fmt.Println(config)
 
 	db, err := gorm.Open(sqlite.Open(config.DBFile), &gorm.Config{
 		TranslateError: true,
@@ -39,7 +41,7 @@ func main() {
 	go handler.Log()
 	go handler.ClearToken(time.Duration(config.CleanerInterval) * time.Second)
 
-	if err := GetRouter(handler).Start(config.Address); err != nil {
+	if err := GetRouter(handler).StartTLS(config.Address, config.SSL.Cert, config.SSL.Key); err != nil {
 		log.Fatalf("failed to start http server: %v\n", err)
 	}
 }
