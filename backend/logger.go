@@ -15,9 +15,10 @@ func (h *Handler) LoggerMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
 		err := next(c)
 
 		h.Logs <- &Log{
-			Method: c.Request().Method,
-			Path:   c.Request().URL.Path,
-			Status: c.Response().Status,
+			ClientIP: c.RealIP(),
+			Method:   c.Request().Method,
+			Path:     c.Request().URL.Path,
+			Status:   c.Response().Status,
 		}
 
 		return err

@@ -16,7 +16,7 @@ func GetRouter(h *Handler) *echo.Echo {
 	pub.POST("/login", h.Login)
 
 	pro := r.Group("")
-	pro.Use(h.WithAuthToken)
+	// pro.Use(h.WithAuthToken)
 
 	soms := pro.Group("/soms")
 	soms.GET("", h.ListSOM)

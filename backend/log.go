@@ -8,12 +8,13 @@ import (
 )
 
 type ListLogRequest struct {
-	Time   *[2]time.Time `form:"time"`
-	Method string        `form:"method"`
-	Path   string        `form:"path"`
-	Status int           `form:"status"`
-	Page   int           `form:"page"`
-	Size   int           `form:"size"`
+	Time     *[2]time.Time `form:"time"`
+	ClientIP string        `form:"clientIp"`
+	Method   string        `form:"method"`
+	Path     string        `form:"path"`
+	Status   int           `form:"status"`
+	Page     int           `form:"page"`
+	Size     int           `form:"size"`
 }
 
 func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
@@ -21,6 +22,7 @@ func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
 	type Log struct {
 		ID        uint      `json:"id"`
 		CreatedAt time.Time `json:"createdAt"`
+		ClientIP  string    `json:"clientIp"`
 		Method    string    `json:"method"`
 		Path      string    `json:"path"`
 		Status    int       `json:"status"`
@@ -30,6 +32,10 @@ func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
 
 	if r.Time != nil {
 		q = q.Where("created_at BETWEEN ? AND ?", r.Time[0], r.Time[1])
+	}
+
+	if r.ClientIP != "" {
+		q = q.Where("client_ip = ?", r.ClientIP)
 	}
 
 	if r.Method != "" {
