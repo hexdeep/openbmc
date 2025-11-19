@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {request} from '@/utils/axios';
 import {Setting} from '@element-plus/icons-vue';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
@@ -23,11 +24,11 @@ const password = ref('')
       </div>
       <el-form>
         <el-form-item :label="t('password')">
-          <el-input v-model="password" />
+          <el-input v-model="password" type="password" show-password />
         </el-form-item>
       </el-form>
       <div class="flex justify-end">
-        <el-button>
+        <el-button @click="request('POST', '/login', {}, { password })">
           {{t('confirm')}}
         </el-button>
       </div>
