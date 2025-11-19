@@ -7,6 +7,7 @@ type Config struct {
 	CleanerInterval uint
 	TokenDuration   uint
 	DefaultSize     int
+	FilePath        string
 	SSL             SSLConfig
 }
 

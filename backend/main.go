@@ -19,6 +19,7 @@ func main() {
 		CleanerInterval: 600,
 		TokenDuration:   7 * 24 * 60,
 		DefaultSize:     10,
+		FilePath:        "/data/file",
 	}
 	if err := envconfig.Process("", &config); err != nil {
 		log.Fatalf("failed to load config: %v\n", err)

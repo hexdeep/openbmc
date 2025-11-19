@@ -11,3 +11,15 @@ func Res(message string, data any) *Resp {
 		Data:    data,
 	}
 }
+
+type List struct {
+	Data  any   `json:"data"`
+	Total int64 `json:"total"`
+}
+
+func NewList(data any, total int64) *List {
+	return &List{
+		Data:  data,
+		Total: total,
+	}
+}

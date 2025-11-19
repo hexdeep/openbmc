@@ -28,7 +28,7 @@ func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
 		Status    int       `json:"status"`
 	}
 
-	q := gorm.G[Log](h.DB).Scopes(h.Paginate(r.Page, r.Size))
+	q := gorm.G[Log](h.DB).Scopes()
 
 	if r.Time != nil {
 		q = q.Where("created_at BETWEEN ? AND ?", r.Time[0], r.Time[1])
@@ -50,10 +50,15 @@ func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
 		q = q.Where("status = ?", r.Status)
 	}
 
-	logs, err := q.Find(c.Request().Context())
+	total, err := q.Count(c.Request().Context(), "*")
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(200, Res("", logs))
+	logs, err := q.Scopes(h.Paginate(r.Page, r.Size)).Find(c.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, Res("", NewList(logs, total)))
 }
