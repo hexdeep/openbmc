@@ -20,6 +20,9 @@ const params = useUrlSearchParams<any>('history')
 const { t } = useI18n({ messages: {
   zh: {
     logListTitle: '日志列表',
+    createdAt: '创建时间',
+    clientIp: '客户端IP',
+    path: '路径',
     method: '请求方法',
     status: '状态码',
   },
@@ -54,11 +57,11 @@ const methodTypeMap: Record<any, any> = {
         {{t('logListTitle')}}
       </div>
       <div class="flex gap-4">
-        <el-select v-model="params.method" :placeholder="t('method')" class="!w-48">
+        <el-select v-model="params.method" :placeholder="t('method')" class="!w-48" :empty-values="['', undefined]">
           <el-option :label="t('none')" value="" />
           <el-option v-for="v in ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS']" :key="v" :label="v" :value="v" />
         </el-select>
-        <el-select v-model="params.status" :placeholder="t('status')" class="!w-48">
+        <el-select v-model="params.status" :placeholder="t('status')" class="!w-48" :empty-values="[0, undefined]">
           <el-option :label="t('none')" :value="0" />
           <el-option v-for="v in [200, 401, 500]" :key="v" :label="v" :value="v" />
         </el-select>
