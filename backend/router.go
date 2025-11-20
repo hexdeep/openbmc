@@ -18,7 +18,9 @@ func GetRouter(h *Handler) *echo.Echo {
 	pro := r.Group("")
 	// pro.Use(h.WithAuthToken)
 
+	pro.GET("/som-statuses", h.ListSOMStatus)
 	pro.GET("/soms", h.ListSOM)
+	pro.GET("/fan-speeds", h.ListFanSpeed)
 	pro.GET("/powered-interfaces", h.ListPoweredInterface)
 	pro.GET("/powers", h.ListPower)
 	pro.GET("/optical-ports", h.ListOpticalPort)

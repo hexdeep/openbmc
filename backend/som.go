@@ -1,10 +1,102 @@
 package main
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+)
 
 func (h *Handler) ListSOMStatus(c echo.Context) error {
 
-	return nil
+	type SOMStatus struct {
+		ID     uint `json:"id"`
+		Status bool `json:"status"`
+	}
+
+	return c.JSON(200, Res("", [][][]SOMStatus{
+		{
+			{
+				{ID: 1},
+				{ID: 9},
+				{ID: 17, Status: true},
+				{ID: 25},
+			},
+			{
+				{ID: 2},
+				{ID: 10},
+				{ID: 18},
+				{ID: 26},
+			},
+			{
+				{ID: 3},
+				{ID: 11, Status: true},
+				{ID: 19},
+				{ID: 27},
+			},
+			{
+				{ID: 4},
+				{ID: 12},
+				{ID: 20},
+				{ID: 28},
+			},
+			{
+				{ID: 5},
+				{ID: 13},
+				{ID: 21},
+				{ID: 29},
+			},
+			{
+				{ID: 6},
+				{ID: 14, Status: true},
+				{ID: 22},
+				{ID: 30},
+			},
+			{
+				{ID: 7},
+				{ID: 15},
+				{ID: 23},
+				{ID: 31},
+			},
+			{
+				{ID: 8},
+				{ID: 16},
+				{ID: 24},
+				{ID: 32, Status: true},
+			},
+		},
+		{
+			{
+				{ID: 33},
+				{ID: 41},
+			},
+			{
+				{ID: 34},
+				{ID: 42},
+			},
+			{
+				{ID: 35},
+				{ID: 43},
+			},
+			{
+				{ID: 36},
+				{ID: 44, Status: true},
+			},
+			{
+				{ID: 37},
+				{ID: 45},
+			},
+			{
+				{ID: 38},
+				{ID: 46},
+			},
+			{
+				{ID: 39},
+				{ID: 47},
+			},
+			{
+				{ID: 40},
+				{ID: 48},
+			},
+		},
+	}))
 }
 
 func (h *Handler) ListSOM(c echo.Context) error {

@@ -13,6 +13,7 @@ const { t } = useI18n({ messages: {
     disk: '硬盘',
     statusSummaryTitle: '状态总览',
     deviceInfoTitle: '设备信息',
+    fanSpeedTitle: '风扇速度',
     systemVersion: '当前管理系统版本',
     deviceName: '设备名称',
     powerTitle: '电源状态',
@@ -46,6 +47,14 @@ interface OpticalPort {
 
 const opticalPorts = ref<OpticalPort[]>([])
 request<any>('GET', '/optical-ports').then(v => opticalPorts.value = v)
+
+interface FanSpeed {
+  id: number;
+  speed: number;
+}
+
+const fanSpeeds = ref<FanSpeed[]>([])
+request('GET', '/fan-speeds').then(v => fanSpeeds.value = v)
 
 const cpuPercentage = ref(20)
 const memoryStatus = ref({
@@ -87,26 +96,18 @@ const diskStatus = ref({
       </div>
 
       <div class="card flex flex-col gap-4">
-        <div class="text-lg">{{t('powerTitle')}}</div>
-        <el-table :data="powers">
-          <el-table-column label="ID" prop="id" />
-          <el-table-column :label="t('name')" prop="name" />
-          <el-table-column :label="t('poweredStatus')">
-            <template #default="{ row: { powered } }">
-              <el-tag :type="powered ? 'success' : 'warning'">
-                {{powered ? t('powered') : t('notPowered')}}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column :label="t('runningStatus')">
-            <template #default="{ row: { running } }">
-              <el-tag :type="running ? 'success' : 'warning'">
-                {{running ? t('running') : t('notRunning')}}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="text-lg">
+          {{t('fanSpeedTitle')}}
+        </div>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
+          <div v-for="s in fanSpeeds" :key="s.id">
+            <div>{{s.id}}</div>
+            <el-progress :percentage="s.speed">
+            </el-progress>
+          </div>
+        </div>
       </div>
+
     </div>
 
     <div class="basis-1/3 flex flex-col gap-4">
@@ -131,17 +132,27 @@ const diskStatus = ref({
       </div>
 
       <div class="card flex flex-col gap-4">
+        <div class="text-lg">{{t('powerTitle')}}</div>
+        <div class="flex flex-col gap-4">
+          <div v-for="power in powers" class="card flex items-center gap-4">
+            <div>{{power.name}}</div>
+            <el-tag :type="power.powered ? 'success' : 'warning'">
+              {{power.powered ? t('powered') : t('notPowered')}}
+            </el-tag>
+          </div>
+        </div>
+      </div>
+
+      <div class="card flex flex-col gap-4">
         <div class="text-lg">{{t('opticalPortTitle')}}</div>
-        <el-table :data="opticalPorts">
-          <el-table-column :label="t('name')" prop="name" />
-          <el-table-column :label="t('connectStatus')">
-            <template #default="{ row: { connected } }">
-              <el-tag :type="connected ? 'success' : 'warning'">
-                {{connected ? t('connected') : t('notConnected')}}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="grid grid-cols-2 gap-4">
+          <div v-for="port in opticalPorts" :key="port.name" class="card flex items-center gap-4">
+            <div>{{port.name}}</div>
+            <el-tag :type="port.connected ? 'success' : 'danger'">
+              {{port.connected ? t('connected') : t('notConnected')}}
+            </el-tag>
+          </div>
+        </div>
       </div>
 
     </div>

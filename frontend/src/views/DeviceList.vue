@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import {request} from '@/utils/axios';
 import {formatSize} from '@/utils/utils';
-import type {cpuUsage} from 'process';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
-
 
 const { t } = useI18n({ messages: {
   zh: {
@@ -24,6 +22,14 @@ const { t } = useI18n({ messages: {
   },
 } })
 
+interface SOMStatus {
+  id: number;
+  status: boolean;
+}
+
+const somStatuses = ref<SOMStatus[][][]>([])
+request('GET', '/som-statuses').then(v => somStatuses.value = v)
+
 interface Interface {
   id: number;
   active: boolean;
@@ -34,10 +40,6 @@ interface Interface {
   ip: string;
   temperature: number;
 }
-
-const testStatus = [
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,
-].map((v, i) => ({ id: i, status: v === 0 ? false : true }))
 
 const interfaces = ref<Interface[]>([])
 request('GET', '/powered-interfaces').then(v => interfaces.value = v)
@@ -50,10 +52,14 @@ request('GET', '/powered-interfaces').then(v => interfaces.value = v)
       <div class="text-lg">
         {{t('statusSummaryTitle')}}
       </div>
-      <div class="grid grid-cols-12 gap-4">
-        <el-tag v-for="s in testStatus" :key="s.id" :type="s.status ? 'success' : 'danger'">
-          {{s.id+1}} {{s.status ? t('powered') : t('notPowered')}}
-        </el-tag>
+      <div class="flex gap-8">
+        <div v-for="panel in somStatuses" class="flex flex-col gap-4">
+          <div v-for="drawer in panel" class="flex gap-2">
+            <el-button class="!m-0" v-for="slot in drawer" :type="slot.status ? 'success' : 'warning'">
+              {{slot.id}} {{slot.status ? t('powered') : t('notPowered')}}
+            </el-button>
+          </div>
+        </div>
       </div>
     </div>
 
