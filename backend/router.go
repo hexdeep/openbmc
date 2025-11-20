@@ -18,21 +18,15 @@ func GetRouter(h *Handler) *echo.Echo {
 	pro := r.Group("")
 	// pro.Use(h.WithAuthToken)
 
-	soms := pro.Group("/soms")
-	soms.GET("", h.ListSOM)
-	soms.GET("/:id", h.GetSOM)
-
-	files := pro.Group("/files")
-	files.GET("", h.ListFile)
-	files.POST("", h.UploadFile)
-	files.DELETE("/:id", h.DeleteFile)
-
+	pro.GET("/soms", h.ListSOM)
+	pro.GET("/powered-interfaces", h.ListPoweredInterface)
 	pro.GET("/powers", h.ListPower)
 	pro.GET("/optical-ports", h.ListOpticalPort)
 	pro.GET("/folder", h.GetFolder)
 	pro.POST("/folder", WithBind(h, CreateFolder))
 	pro.POST("/file", h.UploadFile)
-	pro.POST("/delete-folder", WithBind(h, DeleteFolder))
+	pro.Static("/file", "/data/file")
+	pro.POST("/delete-file", WithBind(h, DeleteFile))
 	pro.GET("/logs", WithBind(h, ListLog))
 
 	return r

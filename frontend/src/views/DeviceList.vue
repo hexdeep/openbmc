@@ -1,13 +1,17 @@
 <script setup lang="ts">
+import {request} from '@/utils/axios';
+import {formatSize} from '@/utils/utils';
+import type {cpuUsage} from 'process';
+import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 
 
 const { t } = useI18n({ messages: {
   zh: {
     statusSummaryTitle: '状态总览',
-    deviceListTitle: '在线设备列表',
+    deviceListTitle: '通电接口列表',
     temperature: '温度',
-    diskCapacity: '硬盘容量',
+    disk: '硬盘',
     powerStatus: '电源状态',
     operation: '操作',
     powerOn: '上电',
@@ -15,14 +19,19 @@ const { t } = useI18n({ messages: {
     powered: '在线',
     notPowered: '下电',
     detail: '详情',
+    updateSystem: '升级',
+    enterTerminal: '终端',
   },
 } })
 
-interface Device {
+interface Interface {
   id: number;
+  active: boolean;
+  drawer: number;
+  diskUsed: number;
+  diskTotal: number;
+  cpuUsage: number;
   ip: string;
-  mac: string;
-  capacity: number;
   temperature: number;
 }
 
@@ -30,15 +39,8 @@ const testStatus = [
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,
 ].map((v, i) => ({ id: i, status: v === 0 ? false : true }))
 
-const testData: Device[] = [
-  {
-    id: 1,
-    ip: '192.168.2.2',
-    mac: 'aaaaaa',
-    capacity: 12341234234,
-    temperature: 123412342134,
-  },
-]
+const interfaces = ref<Interface[]>([])
+request('GET', '/powered-interfaces').then(v => interfaces.value = v)
 </script>
 
 <template>
@@ -59,27 +61,42 @@ const testData: Device[] = [
       <div class="text-lg">
         {{t('deviceListTitle')}}
       </div>
-      <el-table :data="testData" class="rounded-2xl">
+      <el-table :data="interfaces" class="rounded-2xl">
+            {{}}
         <el-table-column label="ID" prop="id" />
-        <el-table-column label="IP" prop="ip" />
-        <el-table-column label="MAC" prop="mac" />
-        <el-table-column :label="t('diskCapacity')" prop="capacity" />
-        <el-table-column :label="t('temperature')" prop="temperature" />
-        <el-table-column :label="t('operation')">
-          <template #default="{row}">
-            <el-button type="primary" size="small">
-              {{t('powerOn')}}
-            </el-button>
-            <el-button type="danger" size="small">
-              {{t('powerOff')}}
-            </el-button>
-            <el-button type="warning" size="small" @click="$router.push(`/devices/${row.id}`)">
-              {{t('detail')}}
-            </el-button>
+        <el-table-column label="status">
+          <template #default="{ row }">
+            <el-tag :type="row.active ? 'success' : 'danger'">
+              {{row.active ? '运行' : '异常'}}
+            </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="IP" prop="ip" />
+        <el-table-column label="CPU" prop="cpuUsage" :formatter="({ cpuUsage }) => `${cpuUsage} %`" />
+        <el-table-column :label="t('disk')" width="200">
+          <template #default="{ row }">
+            {{formatSize(row.diskUsed)}} /
+            {{formatSize(row.diskTotal)}} /
+            {{Math.trunc(row.diskUsed / row.diskTotal * 100)}} %
+          </template>
+        </el-table-column>
+        <el-table-column
+          :label="t('temperature')"
+          prop="temperature"
+          :formatter="({ temperature }) => `${temperature} °C`"
+        />
+        <el-table-column :label="t('operation')" width="200">
+          <el-button type="danger" size="small">
+            {{t('powerOff')}}
+          </el-button>
+          <el-button type="success" size="small">
+            {{t('updateSystem')}}
+          </el-button>
+          <el-button type="primary" size="small">
+            {{t('enterTerminal')}}
+          </el-button>
+        </el-table-column>
       </el-table>
-      <el-pagination layout="prev, pager, next, total" :total="10" />
     </div>
 
   </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {request} from '@/utils/axios';
 import type {List} from '@/utils/utils';
+import {Search} from '@element-plus/icons-vue';
 import {useUrlSearchParams} from '@vueuse/core';
 import dayjs from 'dayjs';
 import {ref, watchEffect} from 'vue';
@@ -57,6 +58,12 @@ const methodTypeMap: Record<any, any> = {
         {{t('logListTitle')}}
       </div>
       <div class="flex gap-4">
+        <el-date-picker
+          :model-value="params.time"
+          @update:model-value="v => params.time = v?.map((e: Date) => e.toISOString())"
+          type="datetimerange"
+        />
+        <el-input v-model="params.path" :placeholder="t('path')" class="!w-48" :suffix-icon="Search" />
         <el-select v-model="params.method" :placeholder="t('method')" class="!w-48" :empty-values="['', undefined]">
           <el-option :label="t('none')" value="" />
           <el-option v-for="v in ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS']" :key="v" :label="v" :value="v" />
@@ -67,7 +74,11 @@ const methodTypeMap: Record<any, any> = {
         </el-select>
       </div>
       <el-table :data="logs.data">
-        <el-table-column :label="t('createdAt')" prop="createdAt" :formatter="({createdAt}) => dayjs(createdAt).format('YYYY-MM-DD hh:mm:ss')" />
+        <el-table-column
+          :label="t('createdAt')"
+          prop="createdAt"
+          :formatter="({createdAt}) => dayjs(createdAt).format('YYYY-MM-DD hh:mm:ss')"
+        />
         <el-table-column :label="t('clientIp')" prop="clientIp" />
         <el-table-column :label="t('method')" prop="method">
           <template #default="{ row: { method } }">

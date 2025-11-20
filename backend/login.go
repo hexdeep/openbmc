@@ -19,12 +19,8 @@ func (h *Handler) Login(c echo.Context) error {
 		return c.JSON(400, Res("请求格式有误", nil))
 	}
 
-	h.Config.Mu.RLock()
-	password := h.Config.Password
-	h.Config.Mu.RUnlock()
-
 	if err := bcrypt.CompareHashAndPassword(
-		[]byte(password), []byte(req.Password),
+		[]byte(h.Config.Password), []byte(req.Password),
 	); errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 		return c.JSON(401, Res("密码不正确", nil))
 	} else if err != nil {

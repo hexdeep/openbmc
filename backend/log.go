@@ -9,7 +9,7 @@ import (
 )
 
 type ListLogRequest struct {
-	Time     *[2]time.Time `query:"time"`
+	Time     *[2]time.Time `query:"time[]"`
 	ClientIP string        `query:"clientIp"`
 	Method   string        `query:"method"`
 	Path     string        `query:"path"`

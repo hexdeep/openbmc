@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {usePersistedStore} from '@/stores/persisted';
 import {request} from '@/utils/axios';
+import {formatSize} from '@/utils/utils';
 import {ArrowLeft, ArrowRight, Delete, Download} from '@element-plus/icons-vue';
 import {ref} from 'vue';
 import {watchEffect} from 'vue';
@@ -43,16 +44,6 @@ function removeLastSegment(path: string): string {
   return index === -1 ? path : path.slice(0, index);
 }
 
-function formatSize(row: Item) {
-  if (row.isDir) return '';
-
-  const size = row.size;
-  if (size < 1024) return size + ' B';
-  if (size < 1024 * 1024) return (size / 1024).toFixed(1) + ' KB';
-  if (size < 1024 * 1024 * 1024) return (size / 1024 / 1024).toFixed(1) + ' MB';
-  return (size / 1024 / 1024 / 1024).toFixed(1) + ' GB';
-}
-
 </script>
 
 <template>
@@ -79,9 +70,10 @@ function formatSize(row: Item) {
           </template>
         </el-input>
         <el-upload
-          class="ms-auto"
           :action="`${persisted.serverAddr}/file`"
+          :data="{ path: $route.query.path }"
           :on-success="load"
+          :show-file-list="false"
         >
           <el-button>
             {{t('uploadFile')}}
@@ -98,7 +90,7 @@ function formatSize(row: Item) {
             {{ row.name }}
           </template>
         </el-table-column>
-        <el-table-column :label="t('size')" prop="size" :formatter="formatSize" />
+        <el-table-column :label="t('size')" prop="size" :formatter="row => row.isDir ? '' : formatSize(row.size)" />
         <el-table-column :label="t('operation')">
           <template #default="{ row }">
             <el-button
@@ -107,9 +99,12 @@ function formatSize(row: Item) {
               :icon="ArrowRight"
               circle
             />
-            <el-button v-else :icon="Download" circle />
+            <a v-else :href="`${persisted.serverAddr}/file/${row.path}`">
+              <el-button :icon="Download" circle />
+            </a>
             <el-button
-              @click="request('POST', '/delete-folder', { path: row.path }).then(ok => ok && load())"
+              @click="request('POST', '/delete-file', { path: row.path }).then(ok => ok && load())"
+              class="ms-3"
               type="danger"
               :icon="Delete"
               circle

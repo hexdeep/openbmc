@@ -64,7 +64,7 @@ func CreateFolder(h *Handler, c echo.Context, r *struct {
 	return c.JSON(200, Res("文件夹创建成功", true))
 }
 
-func DeleteFolder(h *Handler, c echo.Context, r *struct {
+func DeleteFile(h *Handler, c echo.Context, r *struct {
 	Path string `json:"path"`
 }) error {
 
@@ -73,11 +73,6 @@ func DeleteFolder(h *Handler, c echo.Context, r *struct {
 	}
 
 	return c.JSON(200, Res("删除成功", true))
-}
-
-func (h *Handler) ListFile(c echo.Context) error {
-
-	return nil
 }
 
 func (h *Handler) UploadFile(c echo.Context) error {
@@ -106,9 +101,4 @@ func (h *Handler) UploadFile(c echo.Context) error {
 	}
 
 	return c.JSON(200, Res("文件上传成功", true))
-}
-
-func (h *Handler) DeleteFile(c echo.Context) error {
-
-	return nil
 }

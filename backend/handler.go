@@ -4,19 +4,13 @@ import (
 	"context"
 	"errors"
 	"strconv"
-	"sync"
 	"time"
 
 	"gorm.io/gorm"
 )
 
-type ConfigWithMutex struct {
-	*Config
-	Mu sync.RWMutex
-}
-
 type Handler struct {
-	Config *ConfigWithMutex
+	Config *Config
 	Logs   chan *Log
 	*Paginator
 	*gorm.DB
@@ -24,7 +18,7 @@ type Handler struct {
 
 func NewHandler(config *Config, logs chan *Log, paginator *Paginator, db *gorm.DB) *Handler {
 	return &Handler{
-		Config:    &ConfigWithMutex{Config: config},
+		Config:    config,
 		Logs:      logs,
 		Paginator: paginator,
 		DB:        db,

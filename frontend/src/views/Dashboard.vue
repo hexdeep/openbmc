@@ -2,25 +2,15 @@
 import {request} from '@/utils/axios';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
-import VChart from 'vue-echarts';
-import {use} from 'echarts/core';
-import {CanvasRenderer} from 'echarts/renderers';
-import {GridComponent, LegendComponent, TitleComponent, TooltipComponent} from 'echarts/components';
-import {LineChart, PieChart} from 'echarts/charts';
-
-use([
-  CanvasRenderer,
-  PieChart,
-  LineChart,
-  GridComponent,
-  TooltipComponent,
-  LegendComponent,
-  TitleComponent,
-])
+import {formatSize} from '@/utils/utils';
 
 const { t } = useI18n({ messages: {
   zh: {
     cpuUsage: 'CPU 使用率',
+    used: '使用',
+    total: '总量',
+    memory: '内存',
+    disk: '硬盘',
     statusSummaryTitle: '状态总览',
     deviceInfoTitle: '设备信息',
     systemVersion: '当前管理系统版本',
@@ -46,25 +36,6 @@ interface Power {
   running: boolean;
 }
 
-const cpuLineOption = ref({
-  title: {
-    text: t('cpuUsage'),
-  },
-  xAxis: {
-    type: 'category',
-    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  },
-  yAxis: {
-    type: 'value'
-  },
-  series: [
-    {
-      data: [150, 230, 224, 218, 135, 147, 260],
-      type: 'line'
-    }
-  ]
-})
-
 const powers = ref<Power[]>([])
 request<any>('GET', '/powers').then(v => powers.value = v)
 
@@ -76,6 +47,16 @@ interface OpticalPort {
 const opticalPorts = ref<OpticalPort[]>([])
 request<any>('GET', '/optical-ports').then(v => opticalPorts.value = v)
 
+const cpuPercentage = ref(20)
+const memoryStatus = ref({
+  used: 1000000000,
+  total: 3000000000,
+})
+const diskStatus = ref({
+  used: 10000000000,
+  total: 30000000000,
+})
+
 </script>
 
 <template>
@@ -83,13 +64,25 @@ request<any>('GET', '/optical-ports').then(v => opticalPorts.value = v)
 
     <div class="basis-2/3 flex flex-col gap-4">
 
-      <div class="card">
+      <div class="card flex flex-col gap-4">
         <div class="text-lg">
           {{t('statusSummaryTitle')}}
         </div>
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(400px,1fr))] gap-4">
-          <v-chart class="!h-64" :option="cpuLineOption">
-          </v-chart>
+        <div class="flex flex-wrap gap-4">
+          <el-progress type="dashboard" :percentage="cpuPercentage">
+            <div>CPU</div>
+            <div class="text-xs mt-2">{{Math.trunc(cpuPercentage)}} %</div>
+          </el-progress>
+          <el-progress type="dashboard" :percentage="(memoryStatus.used / memoryStatus.total) * 100">
+            <div>{{t('memory')}}</div>
+            <div class="text-xs mt-2">{{t('used')}} {{formatSize(memoryStatus.used)}}</div>
+            <div class="text-xs mt-1">{{t('total')}} {{formatSize(memoryStatus.total)}}</div>
+          </el-progress>
+          <el-progress type="dashboard" :percentage="(diskStatus.used / diskStatus.total) * 100">
+            <div>{{t('disk')}}</div>
+            <div class="text-xs mt-2">{{t('used')}} {{formatSize(diskStatus.used)}}</div>
+            <div class="text-xs mt-1">{{t('total')}} {{formatSize(diskStatus.total)}}</div>
+          </el-progress>
         </div>
       </div>
 
