@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
@@ -27,19 +28,21 @@ func (h *Handler) GetFolder(c echo.Context) error {
 	}
 
 	type Result struct {
-		Name  string `json:"name"`
-		Path  string `json:"path"`
-		Size  int64  `json:"size"`
-		IsDir bool   `json:"isDir"`
+		Name    string    `json:"name"`
+		Path    string    `json:"path"`
+		Size    int64     `json:"size"`
+		IsDir   bool      `json:"isDir"`
+		ModTime time.Time `json:"modTime"`
 	}
 
 	results := lo.Map(entries, func(item fs.DirEntry, i int) Result {
 		info, _ := item.Info()
 		return Result{
-			Name:  item.Name(),
-			Path:  filepath.Join(path, item.Name()),
-			Size:  info.Size(),
-			IsDir: item.IsDir(),
+			Name:    item.Name(),
+			Path:    filepath.Join(path, item.Name()),
+			Size:    info.Size(),
+			IsDir:   item.IsDir(),
+			ModTime: info.ModTime(),
 		}
 	})
 

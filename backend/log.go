@@ -9,13 +9,14 @@ import (
 )
 
 type ListLogRequest struct {
-	Time     *[2]time.Time `query:"time[]"`
-	ClientIP string        `query:"clientIp"`
-	Method   string        `query:"method"`
-	Path     string        `query:"path"`
-	Status   int           `query:"status"`
-	Page     int           `query:"page"`
-	Size     int           `query:"size"`
+	From     *time.Time `query:"from"`
+	To       *time.Time `query:"to"`
+	ClientIP string     `query:"clientIp"`
+	Method   string     `query:"method"`
+	Path     string     `query:"path"`
+	Status   int        `query:"status"`
+	Page     int        `query:"page"`
+	Size     int        `query:"size"`
 }
 
 func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
@@ -29,13 +30,18 @@ func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
 		Status    int       `json:"status"`
 	}
 
-	fmt.Println(r)
-
 	q := gorm.G[Log](h.DB).Scopes()
 
-	if r.Time != nil {
-		q = q.Where("created_at BETWEEN ? AND ?", r.Time[0], r.Time[1])
+	if r.From != nil {
+		q = q.Where("created_at >= ?", r.From)
 	}
+
+	if r.To != nil {
+		q = q.Where("created_at <= ?", r.To)
+	}
+
+	fmt.Printf("the from: %v\n", r.From)
+	fmt.Printf("the to: %v\n", r.To)
 
 	if r.ClientIP != "" {
 		q = q.Where("client_ip = ?", r.ClientIP)
@@ -64,4 +70,34 @@ func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
 	}
 
 	return c.JSON(200, Res("", NewList(logs, total)))
+}
+
+func (h *Handler) DeleteLoga(c echo.Context) error {
+
+	return nil
+}
+
+func ClearLog(h *Handler, c echo.Context, r *struct {
+	Method []string `json:"method"`
+	Status []int    `json:"status"`
+}) error {
+
+	q := gorm.G[Log](h.DB).Scopes()
+
+	if len(r.Method) != 0 {
+		q = q.Where("method IN ?", r.Method)
+	}
+
+	if len(r.Status) != 0 {
+		q = q.Where("status IN ?", r.Status)
+	}
+
+	row, err := q.Delete(c.Request().Context())
+	if err != nil {
+		return err
+	} else if row == 0 {
+		return c.JSON(200, Res("没有匹配的数据", nil))
+	}
+
+	return c.JSON(200, Res(fmt.Sprintf("成功删除了 %d 条数据", row), nil))
 }

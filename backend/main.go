@@ -19,6 +19,8 @@ func main() {
 		CleanerInterval: 600,
 		TokenDuration:   7 * 24 * 60,
 		DefaultSize:     10,
+		LogDuration:     7,
+		LogLevel:        LogInfo,
 		FilePath:        "/data/file",
 	}
 	if err := envconfig.Process("", &config); err != nil {
@@ -41,7 +43,7 @@ func main() {
 	handler := NewHandler(&config, make(chan *Log, 100), NewPaginator(config.DefaultSize), db)
 
 	go handler.Log()
-	go handler.ClearToken(time.Duration(config.CleanerInterval) * time.Second)
+	go handler.ClearData(time.Duration(config.CleanerInterval) * time.Second)
 
 	if err := GetRouter(handler).StartTLS(config.Address, config.SSL.Cert, config.SSL.Key); err != nil {
 		log.Fatalf("failed to start http server: %v\n", err)

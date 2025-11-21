@@ -3,6 +3,7 @@ import {usePersistedStore} from '@/stores/persisted';
 import {request} from '@/utils/axios';
 import {formatSize} from '@/utils/utils';
 import {ArrowLeft, ArrowRight, Delete, Download} from '@element-plus/icons-vue';
+import dayjs from 'dayjs';
 import {ref} from 'vue';
 import {watchEffect} from 'vue';
 import {useI18n} from 'vue-i18n';
@@ -28,6 +29,8 @@ const { t } = useI18n({ messages: {
     folderName: '文件夹名称',
     createFolder: '创建文件夹',
     uploadFile: '上传文件',
+    confirmDeleteText: '你确定要删除吗？',
+    modTime: '修改时间',
   },
 } })
 
@@ -71,7 +74,7 @@ function removeLastSegment(path: string): string {
         </el-input>
         <el-upload
           :action="`${persisted.serverAddr}/file`"
-          :data="{ path: $route.query.path }"
+          :data="{ path: $route.query.path ?? '' }"
           :on-success="load"
           :show-file-list="false"
         >
@@ -91,6 +94,7 @@ function removeLastSegment(path: string): string {
           </template>
         </el-table-column>
         <el-table-column :label="t('size')" prop="size" :formatter="row => row.isDir ? '' : formatSize(row.size)" />
+        <el-table-column :label="t('modTime')" prop="modTime" :formatter="row => dayjs(row.modTime).format('YYYY-MM-DD hh:mm:ss')" />
         <el-table-column :label="t('operation')">
           <template #default="{ row }">
             <el-button
@@ -102,13 +106,19 @@ function removeLastSegment(path: string): string {
             <a v-else :href="`${persisted.serverAddr}/file/${row.path}`">
               <el-button :icon="Download" circle />
             </a>
-            <el-button
-              @click="request('POST', '/delete-file', { path: row.path }).then(ok => ok && load())"
-              class="ms-3"
-              type="danger"
-              :icon="Delete"
-              circle
-            />
+            <el-popconfirm
+              :title="t('confirmDeleteText')"
+              @confirm="request('POST', '/delete-file', { path: row.path }).then(ok => ok && load())"
+            >
+              <template #reference>
+                <el-button
+                  class="ms-3"
+                  type="danger"
+                  :icon="Delete"
+                  circle
+                />
+              </template>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>

@@ -101,9 +101,9 @@ const diskStatus = ref({
         </div>
         <div class="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
           <div v-for="s in fanSpeeds" :key="s.id">
-            <div>{{s.id}}</div>
-            <el-progress :percentage="s.speed">
-            </el-progress>
+            <div>{{s.id}} - {{s.speed}} %</div>
+            <el-slider v-model="s.speed">
+            </el-slider>
           </div>
         </div>
       </div>
@@ -136,9 +136,10 @@ const diskStatus = ref({
         <div class="flex flex-col gap-4">
           <div v-for="power in powers" class="card flex items-center gap-4">
             <div>{{power.name}}</div>
-            <el-tag :type="power.powered ? 'success' : 'warning'">
+            <el-switch v-model="power.powered" />
+            <div class="text-sm text-subtle">
               {{power.powered ? t('powered') : t('notPowered')}}
-            </el-tag>
+            </div>
           </div>
         </div>
       </div>
