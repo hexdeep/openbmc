@@ -31,6 +31,8 @@ const { t } = useI18n({ messages: {
     byTime: '按时间',
     byMethod: '按请求方法',
     byStatus: '按状态',
+    allMethods: '所有方法',
+    allStatuses: '所有状态',
     OPTIONS: '预检',
     GET: '查询',
     POST: '提交',
@@ -69,9 +71,11 @@ const methodTypeMap: Record<any, any> = {
 const isDialogOpen = ref(false)
 
 const clearForm = reactive<{
+  time: [Date, Date],
   method: string[],
   status: number[],
 }>({
+  time: [new Date(), new Date()],
   method: [],
   status: [],
 })
@@ -100,11 +104,11 @@ const clearForm = reactive<{
         />
         <el-input v-model="params.path" :placeholder="t('path')" class="!w-48" :suffix-icon="Search" />
         <el-select v-model="params.method" :placeholder="t('method')" class="!w-48" :empty-values="['', undefined]">
-          <el-option :label="t('none')" value="" />
+          <el-option :label="t('allMethods')" value="" />
           <el-option v-for="v in ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS']" :key="v" :label="v" :value="v" />
         </el-select>
         <el-select v-model="params.status" :placeholder="t('status')" class="!w-48" :empty-values="[0, undefined]">
-          <el-option :label="t('none')" :value="0" />
+          <el-option :label="t('allStatuses')" :value="0" />
           <el-option v-for="v in [200, 401, 500]" :key="v" :label="v" :value="v" />
         </el-select>
         <el-button @click="isDialogOpen = true">
@@ -146,11 +150,12 @@ const clearForm = reactive<{
     </div>
   </div>
   <el-dialog v-model="isDialogOpen" :title="t('clearLog')">
-    <el-form>
-      <el-form-item :label="t('byTime')">
-        <el-date-picker
-          type="datetimerange"
-        />
+    <el-form :model="clearForm">
+      <el-form-item :label="t('byTime')" class="w-md">
+          <el-date-picker
+            v-model="clearForm.time"
+            type="datetimerange"
+          />
       </el-form-item>
       <el-form-item :label="t('byMethod')">
         <el-checkbox-group v-model="clearForm.method">

@@ -22,15 +22,16 @@ const { t } = useI18n({ messages: {
   },
 } })
 
-interface SOMStatus {
-  id: number;
-  status: boolean;
+interface Interface {
+  port: number;
+  status: string;
 }
 
-const somStatuses = ref<SOMStatus[][][]>([])
-request('GET', '/som-statuses').then(v => somStatuses.value = v)
+const interfaces = ref<Interface[]>([])
+const loadInterfaces = () => request('GET', '/som-statuses').then(v => interfaces.value = v)
+loadInterfaces()
 
-interface Interface {
+interface PoweredInterface {
   id: number;
   active: boolean;
   drawer: number;
@@ -41,7 +42,7 @@ interface Interface {
   temperature: number;
 }
 
-const interfaces = ref<Interface[]>([])
+const poweredInterfaces = ref<PoweredInterface[]>([])
 request('GET', '/powered-interfaces').then(v => interfaces.value = v)
 </script>
 
@@ -52,14 +53,15 @@ request('GET', '/powered-interfaces').then(v => interfaces.value = v)
       <div class="text-lg">
         {{t('statusSummaryTitle')}}
       </div>
-      <div class="flex gap-8">
-        <div v-for="panel in somStatuses" class="flex flex-col gap-4">
-          <div v-for="drawer in panel" class="flex gap-2">
-            <el-button class="!m-0" v-for="slot in drawer" :type="slot.status ? 'success' : 'warning'">
-              {{slot.id}} {{slot.status ? t('powered') : t('notPowered')}}
-            </el-button>
-          </div>
-        </div>
+      <div class="grid grid-cols-6 grid-rows-8 gap-4 grid-flow-col">
+        <el-button
+          class="!m-0"
+          v-for="i in interfaces"
+          :type="i.status === 'up' ? 'success' : 'warning'"
+          @click="request('POST', `/interfaces/${i.port}/power-${i.status === 'up' ? 'off' : 'on'}`).then(ok => ok && loadInterfaces())"
+        >
+          {{i.port}} {{i.status === 'up' ? t('powered') : t('notPowered')}}
+        </el-button>
       </div>
     </div>
 
@@ -67,8 +69,7 @@ request('GET', '/powered-interfaces').then(v => interfaces.value = v)
       <div class="text-lg">
         {{t('deviceListTitle')}}
       </div>
-      <el-table :data="interfaces" class="rounded-2xl">
-            {{}}
+      <el-table :data="poweredInterfaces" class="rounded-2xl">
         <el-table-column label="ID" prop="id" />
         <el-table-column label="status">
           <template #default="{ row }">
@@ -92,15 +93,17 @@ request('GET', '/powered-interfaces').then(v => interfaces.value = v)
           :formatter="({ temperature }) => `${temperature} °C`"
         />
         <el-table-column :label="t('operation')" width="200">
-          <el-button type="danger" size="small">
-            {{t('powerOff')}}
-          </el-button>
-          <el-button type="success" size="small">
-            {{t('updateSystem')}}
-          </el-button>
-          <el-button type="primary" size="small">
-            {{t('enterTerminal')}}
-          </el-button>
+          <template #default="{ row }">
+            <el-button type="danger" size="small" @click="request('POST', `/interfaces/${row.id}/power-off`)">
+              {{t('powerOff')}}
+            </el-button>
+            <el-button type="success" size="small">
+              {{t('updateSystem')}}
+            </el-button>
+            <el-button type="primary" size="small">
+              {{t('enterTerminal')}}
+            </el-button>
+          </template>
         </el-table-column>
       </el-table>
     </div>

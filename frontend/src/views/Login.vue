@@ -28,7 +28,7 @@ const password = ref('')
         </el-form-item>
       </el-form>
       <div class="flex justify-end">
-        <el-button @click="request('POST', '/login', {}, { password })">
+        <el-button @click="request('POST', '/login', { password })">
           {{t('confirm')}}
         </el-button>
       </div>

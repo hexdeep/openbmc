@@ -1,102 +1,75 @@
 package main
 
 import (
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) ListSOMStatus(c echo.Context) error {
+type InterfaceInfo struct {
+	Port   int    `json:"port"`
+	Status string `json:"status"`
+}
+
+func (h *Handler) ShowInterface(c echo.Context) error {
 
 	type SOMStatus struct {
 		ID     uint `json:"id"`
 		Status bool `json:"status"`
 	}
 
-	return c.JSON(200, Res("", [][][]SOMStatus{
-		{
-			{
-				{ID: 1},
-				{ID: 9},
-				{ID: 17, Status: true},
-				{ID: 25},
-			},
-			{
-				{ID: 2},
-				{ID: 10},
-				{ID: 18},
-				{ID: 26},
-			},
-			{
-				{ID: 3},
-				{ID: 11, Status: true},
-				{ID: 19},
-				{ID: 27},
-			},
-			{
-				{ID: 4},
-				{ID: 12},
-				{ID: 20},
-				{ID: 28},
-			},
-			{
-				{ID: 5},
-				{ID: 13},
-				{ID: 21},
-				{ID: 29},
-			},
-			{
-				{ID: 6},
-				{ID: 14, Status: true},
-				{ID: 22},
-				{ID: 30},
-			},
-			{
-				{ID: 7},
-				{ID: 15},
-				{ID: 23},
-				{ID: 31},
-			},
-			{
-				{ID: 8},
-				{ID: 16},
-				{ID: 24},
-				{ID: 32, Status: true},
-			},
-		},
-		{
-			{
-				{ID: 33},
-				{ID: 41},
-			},
-			{
-				{ID: 34},
-				{ID: 42},
-			},
-			{
-				{ID: 35},
-				{ID: 43},
-			},
-			{
-				{ID: 36},
-				{ID: 44, Status: true},
-			},
-			{
-				{ID: 37},
-				{ID: 45},
-			},
-			{
-				{ID: 38},
-				{ID: 46},
-			},
-			{
-				{ID: 39},
-				{ID: 47},
-			},
-			{
-				{ID: 40},
-				{ID: 48},
-			},
-		},
-	}))
+	result, err := h.SerialCommand("show interface\n")
+	if err != nil {
+		return err
+	}
+
+	interfaces, err := ParseShowInterface(result)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, Res("", interfaces))
+}
+
+func ParseShowInterface(output string) ([]InterfaceInfo, error) {
+	lines := strings.Split(output, "\n")
+	var result []InterfaceInfo
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// 跳过 prompt、标题等
+		if strings.HasPrefix(line, "Switch_config") ||
+			strings.HasPrefix(line, "port ") ||
+			strings.HasPrefix(line, "HexDeep") {
+			continue
+		}
+
+		// 按空白字符分割（自动处理多空格）
+		fields := strings.Fields(line)
+		if len(fields) < 5 {
+			continue
+		}
+
+		// port 应为数字
+		port, err := strconv.Atoi(fields[0])
+		if err != nil {
+			continue
+		}
+
+		info := InterfaceInfo{
+			Port:   port,
+			Status: fields[2],
+		}
+
+		result = append(result, info)
+	}
+
+	return result, nil
 }
 
 func (h *Handler) ListSOM(c echo.Context) error {
@@ -221,4 +194,49 @@ func (h *Handler) ListPoweredInterface(c echo.Context) error {
 	}
 
 	return c.JSON(200, Res("", sample))
+}
+
+func isBetween1And48(s string) bool {
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return false // not a number
+	}
+	return n >= 1 && n <= 48
+}
+
+func (h *Handler) InterfacePowerOn(c echo.Context) error {
+
+	id := c.Param("id")
+
+	if !isBetween1And48(id) {
+		return c.JSON(400, Res("非法的插槽编号", nil))
+	}
+
+	if err := os.WriteFile("/proc/hexdeep_sub_pwr/pwr_on", []byte(id), 0); err != nil {
+		return err
+	}
+
+	return c.JSON(200, Res("执行成功", true))
+}
+
+func (h *Handler) InterfacePowerOff(c echo.Context) error {
+
+	id := c.Param("id")
+
+	if !isBetween1And48(id) {
+		return c.JSON(400, Res("非法的插槽编号", nil))
+	}
+
+	if err := os.WriteFile("/proc/hexdeep_sub_pwr/pwr_off", []byte(id), 0); err != nil {
+		return err
+	}
+
+	return c.JSON(200, Res("执行成功", true))
+}
+
+func (h *Handler) MainPowerOn(c echo.Context) error {
+
+	id := c.Param("id")
+
+	return nil
 }

@@ -5,8 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/glebarez/sqlite"
 	"github.com/kelseyhightower/envconfig"
-	"gorm.io/driver/sqlite"
+	"go.bug.st/serial"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -22,6 +23,14 @@ func main() {
 		LogDuration:     7,
 		LogLevel:        LogInfo,
 		FilePath:        "/data/file",
+		SerialTimeout:   500,
+		Serial: &serial.Mode{
+			BaudRate: 115200,
+			DataBits: 8,
+			Parity:   serial.NoParity,
+			StopBits: serial.OneStopBit,
+		},
+		SerialFile: "/dev/ttyS3",
 	}
 	if err := envconfig.Process("", &config); err != nil {
 		log.Fatalf("failed to load config: %v\n", err)
@@ -45,7 +54,15 @@ func main() {
 	go handler.Log()
 	go handler.ClearData(time.Duration(config.CleanerInterval) * time.Second)
 
-	if err := GetRouter(handler).StartTLS(config.Address, config.SSL.Cert, config.SSL.Key); err != nil {
+	router := GetRouter(handler)
+
+	if config.SSL.Enabled {
+		err = router.StartTLS(config.Address, config.SSL.Cert, config.SSL.Key)
+	} else {
+		err = router.Start(config.Address)
+	}
+
+	if err != nil {
 		log.Fatalf("failed to start http server: %v\n", err)
 	}
 }

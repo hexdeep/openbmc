@@ -12,15 +12,19 @@ func GetRouter(h *Handler) *echo.Echo {
 	r.Use(middleware.CORS())
 	r.Use(h.LoggerMiddleWare)
 
-	pub := r.Group("")
-	pub.POST("/login", h.Login)
+	api := r.Group("/api")
 
-	pro := r.Group("")
+	api.POST("/login", h.Login)
+
+	pro := api.Group("")
 	// pro.Use(h.WithAuthToken)
+	pro.GET("/cpu", WithSSE(h, PushCPUStatus))
+	pro.POST("/interfaces/:id/power-on", h.InterfacePowerOn)
+	pro.POST("/interfaces/:id/power-off", h.InterfacePowerOff)
 	pro.POST("/clear-logs", WithBind(h, ClearLog))
 	pro.POST("/interfaces/:id/power-on", h.InterfacePowerOn)
 	pro.POST("/interfaces/:id/power-off", h.InterfacePowerOff)
-	pro.GET("/som-statuses", h.ListSOMStatus)
+	pro.GET("/som-statuses", h.ShowInterface)
 	pro.GET("/soms", h.ListSOM)
 	pro.GET("/fan-speeds", h.ListFanSpeed)
 	pro.GET("/powered-interfaces", h.ListPoweredInterface)
@@ -32,6 +36,9 @@ func GetRouter(h *Handler) *echo.Echo {
 	pro.Static("/file", "/data/file")
 	pro.POST("/delete-file", WithBind(h, DeleteFile))
 	pro.GET("/logs", WithBind(h, ListLog))
+
+	r.Static("/", "frontend")
+	// r.File("/*", "frontend/index.html")
 
 	return r
 }

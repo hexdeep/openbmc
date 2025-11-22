@@ -2,7 +2,7 @@ import axios from "axios"
 import {ElMessage} from "element-plus"
 
 export const api = axios.create({
-  baseURL: 'https://axogc.net:8080',
+  baseURL: '/api',
 })
 
 export function request<T = any>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, data?: any): Promise<T> {
