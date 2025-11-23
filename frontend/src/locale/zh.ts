@@ -3,4 +3,5 @@ export default {
   cancel: '取消',
   back: '返回',
   exit: '退出',
+  refresh: '刷新',
 }

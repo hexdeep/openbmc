@@ -17,12 +17,19 @@ type Config struct {
 	SerialFile      string
 	LogLevel        LogLevel   // 日志等级，例如`INFO`和`WARN`和`ERROR`
 	SSL             *SSLConfig // 后端证书和私钥
+	Proc            *ProcConfig
 }
 
 type SSLConfig struct {
 	Enabled bool
 	Cert    string
 	Key     string
+}
+
+type ProcConfig struct {
+	SubPowerStatus string
+	SubPowerOn     string
+	SubPowerOff    string
 }
 
 type LogLevel string
@@ -32,3 +39,7 @@ const (
 	LogWarn  LogLevel = "WARN"
 	LogError LogLevel = "ERROR"
 )
+
+type Interface struct {
+	SubPwrStatus string
+}

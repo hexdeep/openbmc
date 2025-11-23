@@ -18,18 +18,15 @@ func GetRouter(h *Handler) *echo.Echo {
 
 	pro := api.Group("")
 	// pro.Use(h.WithAuthToken)
-	pro.GET("/cpu", WithSSE(h, PushCPUStatus))
-	pro.POST("/interfaces/:id/power-on", h.InterfacePowerOn)
-	pro.POST("/interfaces/:id/power-off", h.InterfacePowerOff)
+	pro.GET("/usage", WithSSE(h, Usage))
+	pro.POST("/interfaces/:id/power-on", h.SlotPowerOn)
+	pro.POST("/interfaces/:id/power-off", h.SlotPowerOff)
 	pro.POST("/clear-logs", WithBind(h, ClearLog))
-	pro.POST("/interfaces/:id/power-on", h.InterfacePowerOn)
-	pro.POST("/interfaces/:id/power-off", h.InterfacePowerOff)
-	pro.GET("/som-statuses", h.ShowInterface)
 	pro.GET("/soms", h.ListSOM)
 	pro.GET("/fan-speeds", h.ListFanSpeed)
 	pro.GET("/powered-interfaces", h.ListPoweredInterface)
 	pro.GET("/powers", h.ListPower)
-	pro.GET("/optical-ports", h.ListOpticalPort)
+	pro.GET("/optical-port", h.ListOpticalPort)
 	pro.GET("/folder", h.GetFolder)
 	pro.POST("/folder", WithBind(h, CreateFolder))
 	pro.POST("/file", h.UploadFile)
@@ -37,8 +34,14 @@ func GetRouter(h *Handler) *echo.Echo {
 	pro.POST("/delete-file", WithBind(h, DeleteFile))
 	pro.GET("/logs", WithBind(h, ListLog))
 
-	r.Static("/", "frontend")
-	// r.File("/*", "frontend/index.html")
+	pro.GET("/main-power", h.ListMainPower)
+	pro.POST("/main-power/:id/on", h.MainPowerOn)
+	pro.POST("/main-power/:id/off", h.MainPowerOff)
+	pro.GET("/sub-power", h.ListSubPower)
+
+	pro.GET("/powered-slot", h.ListPoweredSlot)
+
+	r.GET("/*", HandleFrontend)
 
 	return r
 }

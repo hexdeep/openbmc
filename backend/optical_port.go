@@ -1,30 +1,23 @@
 package main
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
+)
 
 func (h *Handler) ListOpticalPort(c echo.Context) error {
 
 	type OpticalPort struct {
-		Name      string `json:"name"`
-		Connected bool   `json:"connected"`
+		Port   string `json:"port"`
+		Status string `json:"status"`
 	}
 
-	return c.JSON(200, Res("", []OpticalPort{
-		{
-			Name:      "光口 1",
-			Connected: true,
-		},
-		{
-			Name:      "光口 2",
-			Connected: true,
-		},
-		{
-			Name:      "光口 3",
-			Connected: false,
-		},
-		{
-			Name:      "光口 4",
-			Connected: false,
-		},
-	}))
+	interfaces, err := h.SerialShowInterface()
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, Res("", lo.Map([]string{"49", "50", "51", "52"}, func(item string, index int) *OpticalPort {
+		return &OpticalPort{Port: item, Status: interfaces[item]}
+	})))
 }

@@ -6,6 +6,7 @@ import {useI18n} from 'vue-i18n';
 
 const { t } = useI18n({ messages: {
   zh: {
+    slot: '插槽',
     statusSummaryTitle: '状态总览',
     deviceListTitle: '通电接口列表',
     temperature: '温度',
@@ -22,17 +23,17 @@ const { t } = useI18n({ messages: {
   },
 } })
 
-interface Interface {
-  port: number;
-  status: string;
+interface SubPower {
+  id: string;
+  active: boolean;
 }
 
-const interfaces = ref<Interface[]>([])
-const loadInterfaces = () => request('GET', '/som-statuses').then(v => interfaces.value = v)
-loadInterfaces()
+const subPowers = ref<SubPower[]>([])
+const loadSubPowers = () => request('GET', '/sub-power').then(v => subPowers.value = v)
+loadSubPowers()
 
-interface PoweredInterface {
-  id: number;
+interface PoweredSlot {
+  slot: number;
   active: boolean;
   drawer: number;
   diskUsed: number;
@@ -42,25 +43,31 @@ interface PoweredInterface {
   temperature: number;
 }
 
-const poweredInterfaces = ref<PoweredInterface[]>([])
-request('GET', '/powered-interfaces').then(v => interfaces.value = v)
+
+const poweredSlots = ref<PoweredSlot[]>([])
+request('GET', '/powered-slot').then(v => poweredSlots.value = v)
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto flex flex-col gap-4 p-4">
 
     <div class="card flex flex-col gap-4">
-      <div class="text-lg">
-        {{t('statusSummaryTitle')}}
+      <div class="flex items-center gap-4">
+        <div class="text-lg">
+          {{t('statusSummaryTitle')}}
+        </div>
+        <el-button @click="loadSubPowers">
+          {{t('refresh')}}
+        </el-button>
       </div>
       <div class="grid grid-cols-6 grid-rows-8 gap-4 grid-flow-col">
         <el-button
           class="!m-0"
-          v-for="i in interfaces"
-          :type="i.status === 'up' ? 'success' : 'warning'"
-          @click="request('POST', `/interfaces/${i.port}/power-${i.status === 'up' ? 'off' : 'on'}`).then(ok => ok && loadInterfaces())"
+          v-for="p in subPowers"
+          :type="p.active ? 'success' : 'warning'"
+          @click="request('POST', `/interfaces/${p.id}/power-${p.active ? 'off' : 'on'}`).then(loadSubPowers)"
         >
-          {{i.port}} {{i.status === 'up' ? t('powered') : t('notPowered')}}
+          {{p.id}} {{p.active ? t('powered') : t('notPowered')}}
         </el-button>
       </div>
     </div>
@@ -69,8 +76,8 @@ request('GET', '/powered-interfaces').then(v => interfaces.value = v)
       <div class="text-lg">
         {{t('deviceListTitle')}}
       </div>
-      <el-table :data="poweredInterfaces" class="rounded-2xl">
-        <el-table-column label="ID" prop="id" />
+      <el-table :data="poweredSlots" class="rounded-1xl">
+        <el-table-column label="t('slot')" prop="slot" />
         <el-table-column label="status">
           <template #default="{ row }">
             <el-tag :type="row.active ? 'success' : 'danger'">

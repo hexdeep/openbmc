@@ -20,8 +20,8 @@ const router = createRouter({
           component: () => import('@/views/Dashboard.vue'),
         },
         {
-          path: 'devices',
-          component: () => import('@/views/DeviceList.vue'),
+          path: 'slots',
+          component: () => import('@/views/Slot.vue'),
         },
         {
           path: 'images',

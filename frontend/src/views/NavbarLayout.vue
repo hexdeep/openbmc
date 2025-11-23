@@ -8,7 +8,7 @@ const isCollapse = ref(false)
 const { t } = useI18n({ messages: {
   zh: {
     dashboard: '仪表板',
-    deviceList: '设备列表',
+    slots: '插槽列表',
     imageList: '镜像列表',
     hideNavbar: '隐藏侧边栏',
     fileManage: '文件管理',
@@ -30,9 +30,9 @@ const navbarItems: NavbarItem[] = [
     path: '/dashboard',
   },
   {
-    label: t('deviceList'),
+    label: t('slots'),
     icon: Phone,
-    path: '/devices',
+    path: '/slots',
   },
   {
     label: t('imageList'),

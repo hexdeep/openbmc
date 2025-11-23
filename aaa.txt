@@ -1,0 +1,10 @@
+50 51
+49 52
+
+pwr_off
+boot_on
+pwr_on
+... 刷机
+boot_off
+pwr_off
+pwr_on
