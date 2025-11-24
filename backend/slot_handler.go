@@ -29,7 +29,7 @@ func (h *Handler) ListPoweredSlot(c echo.Context) error {
 
 	for _, slot := range slots {
 		wg.Add(1)
-		go func(slot Slot) {
+		go func() {
 			defer wg.Done()
 			ctx, canc := context.WithTimeout(c.Request().Context(), 1*time.Second)
 			defer canc()
@@ -37,7 +37,7 @@ func (h *Handler) ListPoweredSlot(c echo.Context) error {
 				Slot:   int(slot),
 				Active: slot.IsActive(ctx),
 			}
-		}(slot)
+		}()
 	}
 
 	wg.Wait()

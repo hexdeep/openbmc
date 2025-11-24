@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -47,13 +48,30 @@ func (s *SubPowerStatus) GetPoweredSlots() []Slot {
 func GetSubPowerStatus() (*SubPowerStatus, error) {
 	var result SubPowerStatus
 
-	dataBytes, err := os.ReadFile("/proc/hexdeep_sub_pwr/pwr_status")
+	/*
+		dataBytes, err := os.ReadFile("/proc/hexdeep_sub_pwr/pwr_status")
+		if err != nil {
+			return nil, err
+		}
+	*/
+
+	f, err := os.Open("/proc/hexdeep_sub_pwr/pwr_status")
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
+
+	buf := make([]byte, 256)
+	n, err := f.Read(buf)
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	dataBytes := make([]byte, 256)
+	f.Read(dataBytes)
 
 	// e.g. "0xffff,0xaaab,0xaaaa,0xaaaa,0xaaaa,0xeaaa\n"
-	content := strings.TrimSpace(string(dataBytes))
+	content := strings.TrimSpace(string(buf[:n]))
 	parts := strings.Split(content, ",")
 	if len(parts) != 6 {
 		return nil, fmt.Errorf("invalid pwr_status format: %q", content)
