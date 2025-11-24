@@ -11,7 +11,7 @@ import (
 
 func (h *Handler) ListPoweredSlot(c echo.Context) error {
 
-	status, err := GetSubPowerStatus()
+	status, err := h.Proc.SubPwrStatus.Get()
 	if err != nil {
 		return err
 	}

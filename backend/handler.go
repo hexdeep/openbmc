@@ -9,7 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
+type Proc struct {
+	SubPwrStatus *SubPwrStatusProc
+}
+
 type Handler struct {
+	Proc   *Proc
 	Config *Config
 	Logs   chan *Log
 	*Paginator

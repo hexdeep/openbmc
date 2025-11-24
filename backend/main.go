@@ -49,7 +49,15 @@ func main() {
 		log.Fatalf("failed to auto migrate database: %v\n", err)
 	}
 
-	handler := NewHandler(&config, make(chan *Log, 100), NewPaginator(config.DefaultSize), db)
+	handler := &Handler{
+		Config:    &config,
+		Logs:      make(chan *Log, 100),
+		Paginator: NewPaginator(config.DefaultSize),
+		DB:        db,
+		Proc: &Proc{
+			SubPwrStatus: &SubPwrStatusProc{},
+		},
+	}
 
 	go handler.Log()
 	go handler.ClearData(time.Duration(config.CleanerInterval) * time.Second)

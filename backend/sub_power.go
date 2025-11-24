@@ -2,13 +2,17 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 )
+
+type SubPwrStatusProc struct {
+	Mu sync.Mutex
+}
 
 type SubPower struct {
 	ID     string `json:"id"`
@@ -17,7 +21,7 @@ type SubPower struct {
 
 func (h *Handler) ListSubPower(c echo.Context) error {
 
-	status, err := GetSubPowerStatus()
+	status, err := h.Proc.SubPwrStatus.Get()
 	if err != nil {
 		return err
 	}
@@ -45,33 +49,20 @@ func (s *SubPowerStatus) GetPoweredSlots() []Slot {
 	return result
 }
 
-func GetSubPowerStatus() (*SubPowerStatus, error) {
+func (p *SubPwrStatusProc) Get() (*SubPowerStatus, error) {
 	var result SubPowerStatus
 
-	/*
-		dataBytes, err := os.ReadFile("/proc/hexdeep_sub_pwr/pwr_status")
-		if err != nil {
-			return nil, err
-		}
-	*/
-
-	f, err := os.Open("/proc/hexdeep_sub_pwr/pwr_status")
+	p.Mu.Lock()
+	dataBytes, err := os.ReadFile("/proc/hexdeep_sub_pwr/pwr_status")
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	p.Mu.Unlock()
 
-	buf := make([]byte, 256)
-	n, err := f.Read(buf)
-	if err != nil && err != io.EOF {
-		return nil, err
-	}
-
-	dataBytes := make([]byte, 256)
-	f.Read(dataBytes)
+	fmt.Printf("data from os.ReadFile: %v\n", string(dataBytes))
 
 	// e.g. "0xffff,0xaaab,0xaaaa,0xaaaa,0xaaaa,0xeaaa\n"
-	content := strings.TrimSpace(string(buf[:n]))
+	content := strings.TrimSpace(string(dataBytes))
 	parts := strings.Split(content, ",")
 	if len(parts) != 6 {
 		return nil, fmt.Errorf("invalid pwr_status format: %q", content)
