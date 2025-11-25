@@ -4,6 +4,7 @@ import Fan from './Fan.vue';
 import Description from './Description.vue';
 import Power from './Power.vue';
 import OpticalPort from './OpticalPort.vue';
+import SlotPower from './SlotPower.vue';
 
 </script>
 
@@ -13,6 +14,8 @@ import OpticalPort from './OpticalPort.vue';
     <div class="basis-2/3 flex flex-col gap-4">
 
       <usage />
+
+      <slot-power />
 
       <fan />
 

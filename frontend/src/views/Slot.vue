@@ -2,13 +2,12 @@
 import {request} from '@/utils/axios';
 import {formatSize} from '@/utils/utils';
 import {useEventSource} from '@vueuse/core';
-import {computed, ref} from 'vue';
+import {computed} from 'vue';
 import {useI18n} from 'vue-i18n';
 
 const { t } = useI18n({ messages: {
   zh: {
     slot: '插槽',
-    statusSummaryTitle: '状态总览',
     deviceListTitle: '通电接口列表',
     temperature: '温度',
     mem: '内存',
@@ -16,38 +15,11 @@ const { t } = useI18n({ messages: {
     operation: '操作',
     powerOn: '上电',
     powerOff: '下电',
-    powered: '在线',
-    notPowered: '下电',
     detail: '详情',
     updateSystem: '升级',
     enterTerminal: '终端',
   },
 } })
-
-interface SubPower {
-  id: string;
-  active: boolean;
-  mac: string;
-  temp: string;
-  memUsed: number;
-  memTotal: number;
-}
-
-
-const subPowers = ref<SubPower[]>([])
-const loadSubPowers = () => request('GET', '/sub-power').then(v => subPowers.value = v)
-loadSubPowers()
-
-interface PoweredSlot {
-  slot: number;
-  active: boolean;
-  drawer: number;
-  diskUsed: number;
-  diskTotal: number;
-  cpuUsage: number;
-  ip: string;
-  temperature: number;
-}
 
 const { data } = useEventSource('/api/powered-slot')
 const poweredSlots = computed(() => {
@@ -63,35 +35,10 @@ const poweredSlots = ref<PoweredSlot[]>([])
 const loadPoweredSlots = () => request<PoweredSlot[]>('GET', '/powered-slot').then(v => poweredSlots.value = v.sort((a, b) => a.slot - b.slot))
 loadPoweredSlots()
 */
-
-const load = () => {
-  loadSubPowers()
-}
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto flex flex-col gap-4 p-4">
-
-    <div class="card flex flex-col gap-4">
-      <div class="flex items-center gap-4">
-        <div class="text-lg">
-          {{t('statusSummaryTitle')}}
-        </div>
-        <el-button @click="loadSubPowers">
-          {{t('refresh')}}
-        </el-button>
-      </div>
-      <div class="grid grid-cols-6 grid-rows-8 gap-4 grid-flow-col">
-        <el-button
-          class="m-0!"
-          v-for="p in subPowers"
-          :type="p.active ? 'success' : 'warning'"
-          @click="request('POST', `/slot/${p.id}/power-${p.active ? 'off' : 'on'}`).then(load)"
-        >
-          {{p.id}} {{p.active ? t('powered') : t('notPowered')}}
-        </el-button>
-      </div>
-    </div>
 
     <div class="card flex flex-col gap-4">
       <div class="text-lg">
@@ -123,7 +70,7 @@ const load = () => {
         />
         <el-table-column :label="t('operation')" width="200">
           <template #default="{ row }">
-            <el-button type="danger" size="small" @click="request('POST', `/slot/${row.slot}/power-off`).then(load)">
+            <el-button type="danger" size="small" @click="request('POST', `/slot/${row.slot}/power-off`)">
               {{t('powerOff')}}
             </el-button>
             <el-button type="success" size="small">
