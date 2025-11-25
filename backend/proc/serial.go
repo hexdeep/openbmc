@@ -60,5 +60,9 @@ func SerialCommand(mode *serial.Mode, portName string, timeout time.Duration, co
 	cleaned := strings.Join(lines, "\n")
 	cleaned = strings.TrimSpace(cleaned)
 
-	return string(cleaned[9:]), nil
+	if len(cleaned) > 9 {
+		cleaned = cleaned[9:]
+	}
+
+	return string(cleaned), nil
 }

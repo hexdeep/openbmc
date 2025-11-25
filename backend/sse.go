@@ -1,12 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
 
-func WithSSE(h *Handler, fn func(h *Handler, c echo.Context, send chan<- string)) echo.HandlerFunc {
+func WithSSE(h *Handler, fn func(h *Handler, c echo.Context, send chan<- any)) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		res := c.Response()
 		req := c.Request()
@@ -19,7 +20,7 @@ func WithSSE(h *Handler, fn func(h *Handler, c echo.Context, send chan<- string)
 		res.Flush()
 
 		// channel for sending SSE messages
-		send := make(chan string)
+		send := make(chan any)
 
 		// Writer goroutine
 		go func() {
@@ -29,8 +30,14 @@ func WithSSE(h *Handler, fn func(h *Handler, c echo.Context, send chan<- string)
 					if !ok {
 						return
 					}
+
+					data, err := json.Marshal(msg)
+					if err != nil {
+						return
+					}
+
 					// Write event
-					if _, err := res.Write([]byte("data: " + msg + "\n\n")); err != nil {
+					if _, err := res.Write([]byte("data: " + string(data) + "\n\n")); err != nil {
 						return
 					}
 					// Flush buffer

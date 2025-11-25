@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"math"
 	"time"
@@ -11,7 +10,7 @@ import (
 	"github.com/shirou/gopsutil/v4/cpu"
 )
 
-func Usage(h *Handler, c echo.Context, send chan<- string) {
+func Usage(h *Handler, c echo.Context, send chan<- any) {
 	type Usage struct {
 		CPU      float64 `json:"cpu"`
 		MemTotal uint64  `json:"memTotal"`
@@ -45,14 +44,8 @@ func Usage(h *Handler, c echo.Context, send chan<- string) {
 				MemUsed:  vm.Used,
 			}
 
-			data, err := json.Marshal(usage)
-			if err != nil {
-				log.Printf("failed to marshal usage: %v\n", err)
-				continue
-			}
-
 			select {
-			case send <- string(data):
+			case send <- usage:
 			case <-ctx.Done():
 				return
 			}

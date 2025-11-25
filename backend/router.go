@@ -36,7 +36,7 @@ func GetRouter(h *Handler) *echo.Echo {
 	pro.POST("/main-power/:id/off", h.MainPowerOff)
 	pro.GET("/sub-power", h.ListSubPower)
 
-	pro.GET("/powered-slot", h.ListPoweredSlot)
+	pro.GET("/powered-slot", WithSSE(h, ListPoweredSlot))
 
 	r.GET("/*", HandleFrontend)
 

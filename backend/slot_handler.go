@@ -2,67 +2,98 @@ package main
 
 import (
 	"fmt"
+	"slices"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) ListPoweredSlot(c echo.Context) error {
-
-	status, err := h.Proc.SubPwrStatus.Get()
-	if err != nil {
-		return err
-	}
-
-	slots := status.GetPoweredSlots()
+func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 
 	type SlotStatus struct {
-		Slot   string `json:"slot"`
-		Active bool   `json:"active"`
-		Mac    string `json:"mac"`
-		IP     string `json:"ip"`
-		Temp   string `json:"temp"`
+		Slot     string `json:"slot"`
+		Active   bool   `json:"active"`
+		Mac      string `json:"mac"`
+		IP       string `json:"ip"`
+		Temp     string `json:"temp"`
+		MemUsed  int    `json:"memUsed"`
+		MemTotal int    `json:"memTotal"`
 	}
 
-	ch := make(chan SlotStatus, len(slots))
+	ctx := c.Request().Context()
 
-	var wg sync.WaitGroup
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
 
-	for _, slot := range slots {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			timeout := 100 * time.Millisecond
-			mac, ip, err := h.Proc.SlotSerial.GetMacIP(slot, timeout)
+			status, err := h.Proc.SubPwrStatus.Get()
 			if err != nil {
-				fmt.Printf("failed to get mac and ip: %v\n", err)
-				mac, ip = "", ""
+				continue
 			}
-			temp, err := h.Proc.SlotSerial.GetTemp(slot, timeout)
-			if err != nil {
-				fmt.Printf("failed to get temp: %v\n", err)
-				temp = ""
+
+			slots := status.GetPoweredSlots()
+
+			ch := make(chan SlotStatus, len(slots))
+
+			var wg sync.WaitGroup
+
+			for _, slot := range slots {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					timeout := 100 * time.Millisecond
+					mac, ip, err := h.Proc.SlotSerial.GetMacIP(slot, timeout)
+					if err != nil {
+						fmt.Printf("failed to get mac and ip: %v\n", err)
+						mac, ip = "", ""
+					}
+					temp, err := h.Proc.SlotSerial.GetTemp(slot, timeout)
+					if err != nil {
+						fmt.Printf("failed to get temp: %v\n", err)
+						temp = ""
+					}
+					memUsed, memTotal, err := h.Proc.SlotSerial.GetMem(slot, timeout)
+					if err != nil {
+						fmt.Printf("failed to get mem info: %v\n", err)
+					}
+					ch <- SlotStatus{
+						Slot:     slot,
+						Active:   h.Proc.SlotSerial.IsActive(slot, timeout),
+						Mac:      mac,
+						IP:       ip,
+						Temp:     temp,
+						MemUsed:  memUsed,
+						MemTotal: memTotal,
+					}
+				}()
 			}
-			ch <- SlotStatus{
-				Slot:   slot,
-				Active: h.Proc.SlotSerial.IsActive(slot, timeout),
-				Mac:    mac,
-				IP:     ip,
-				Temp:   temp,
+
+			wg.Wait()
+			close(ch)
+
+			results := make([]SlotStatus, 0, len(slots))
+			for s := range ch {
+				results = append(results, s)
 			}
-		}()
+
+			slices.SortFunc(results, func(a, b SlotStatus) int {
+				aid, _ := strconv.Atoi(a.Slot)
+				bid, _ := strconv.Atoi(b.Slot)
+				return aid - bid
+			})
+
+			select {
+			case send <- results:
+			case <-ctx.Done():
+				return
+			}
+		}
+		time.Sleep(time.Second)
 	}
-
-	wg.Wait()
-	close(ch)
-
-	results := make([]SlotStatus, 0, len(slots))
-	for s := range ch {
-		results = append(results, s)
-	}
-
-	return c.JSON(200, Res("", results))
 }
 
 /*

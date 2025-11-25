@@ -1,6 +1,7 @@
 package proc
 
 import (
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +32,7 @@ func (s *SlotSerial) IsActive(id string, timeout time.Duration) bool {
 
 	buf := make([]byte, 256)
 
+	port.SetReadTimeout(timeout)
 	n, err := port.Read(buf)
 	if err != nil || n == 0 {
 		return false
@@ -69,4 +71,31 @@ func (s *SlotSerial) GetTemp(id string, timeout time.Duration) (string, error) {
 	}
 
 	return data[:len(data)-3], nil
+}
+
+func (s *SlotSerial) GetMem(id string, timeout time.Duration) (int, int, error) {
+
+	ttyId, err := SlotIDToTTY(id)
+	if err != nil {
+		return 0, 0, nil
+	}
+
+	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/meminfo\n")
+	if err != nil {
+		return 0, 0, err
+	}
+
+	lines := strings.Split(data, "\n")
+
+	total, err := strconv.Atoi(strings.Fields(lines[0])[1] + "000")
+	if err != nil {
+		return 0, 0, err
+	}
+
+	free, err := strconv.Atoi(strings.Fields(lines[1])[1] + "000")
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return total - free, total, nil
 }

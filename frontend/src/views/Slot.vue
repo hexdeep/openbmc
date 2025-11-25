@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {request} from '@/utils/axios';
 import {formatSize} from '@/utils/utils';
-import {ref} from 'vue';
+import {useEventSource} from '@vueuse/core';
+import {computed, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 
 const { t } = useI18n({ messages: {
@@ -10,7 +11,7 @@ const { t } = useI18n({ messages: {
     statusSummaryTitle: '状态总览',
     deviceListTitle: '通电接口列表',
     temperature: '温度',
-    disk: '硬盘',
+    mem: '内存',
     powerStatus: '电源状态',
     operation: '操作',
     powerOn: '上电',
@@ -28,7 +29,10 @@ interface SubPower {
   active: boolean;
   mac: string;
   temp: string;
+  memUsed: number;
+  memTotal: number;
 }
+
 
 const subPowers = ref<SubPower[]>([])
 const loadSubPowers = () => request('GET', '/sub-power').then(v => subPowers.value = v)
@@ -45,13 +49,23 @@ interface PoweredSlot {
   temperature: number;
 }
 
+const { data } = useEventSource('/api/powered-slot')
+const poweredSlots = computed(() => {
+  if (!data.value) return 0
+  try {
+    return JSON.parse(data.value)
+  } catch {
+    return 0
+  }
+})
+/*
 const poweredSlots = ref<PoweredSlot[]>([])
 const loadPoweredSlots = () => request<PoweredSlot[]>('GET', '/powered-slot').then(v => poweredSlots.value = v.sort((a, b) => a.slot - b.slot))
 loadPoweredSlots()
+*/
 
 const load = () => {
   loadSubPowers()
-  loadPoweredSlots()
 }
 </script>
 
@@ -95,11 +109,11 @@ const load = () => {
         <el-table-column label="IP" prop="ip" />
         <el-table-column label="MAC" prop="mac" />
         <el-table-column label="CPU" prop="cpuUsage" :formatter="({ cpuUsage }) => `${cpuUsage} %`" />
-        <el-table-column :label="t('disk')" width="200">
+        <el-table-column :label="t('mem')" width="200">
           <template #default="{ row }">
-            {{formatSize(row.diskUsed)}} /
-            {{formatSize(row.diskTotal)}} /
-            {{Math.trunc(row.diskUsed / row.diskTotal * 100)}} %
+            {{formatSize(row.memUsed)}} /
+            {{formatSize(row.memTotal)}} /
+            {{Math.trunc((row.memUsed / row.memTotal) * 100)}} %
           </template>
         </el-table-column>
         <el-table-column
