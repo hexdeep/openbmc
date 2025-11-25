@@ -54,8 +54,17 @@ func (s *SlotSerial) GetMacIP(id string, timeout time.Duration) (string, string,
 	}
 
 	lines := strings.Split(data, "\n")
+	target := -1
+	for index, line := range lines {
+		if strings.HasPrefix(line, "eth0") {
+			target = index
+		}
+	}
+	if target == -1 {
+		return "", "", nil
+	}
 
-	return strings.Fields(lines[0])[4], strings.Split(strings.Fields(lines[1])[1], ":")[1], nil
+	return strings.Fields(lines[target])[4], strings.Split(strings.Fields(lines[target+1])[1], ":")[1], nil
 }
 
 func (s *SlotSerial) GetTemp(id string, timeout time.Duration) (string, error) {
