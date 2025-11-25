@@ -1,74 +1,54 @@
 package proc
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"strings"
+	"time"
 
 	"go.bug.st/serial"
 )
 
-func SerialCommand(mode *serial.Mode, portName string, ctx context.Context, command string) (string, error) {
+func SerialCommand(mode *serial.Mode, portName string, timeout time.Duration, command string) (string, error) {
+
 	port, err := serial.Open(portName, mode)
 	if err != nil {
 		return "", err
 	}
 	defer port.Close()
 
-	// 写入指令
 	_, err = port.Write([]byte(command))
 	if err != nil {
 		return "", err
 	}
 
+	port.SetReadTimeout(timeout)
+
 	buf := make([]byte, 256)
 	result := make([]byte, 0)
 
-	readErrCh := make(chan error, 1)
-	dataCh := make(chan []byte, 1)
-
-	// 读取 goroutine
-	go func() {
-		for {
-			n, err := port.Read(buf)
-			if err != nil {
-				readErrCh <- err
-				return
-			}
-			if n == 0 {
-				// 认为串口返回结束
-				dataCh <- result
-				return
-			}
-			result = append(result, buf[:n]...)
+	for {
+		n, err := port.Read(buf)
+		if err != nil {
+			return "", err
 		}
-	}()
-
-	// 监听 context 或读取结束
-	select {
-	case <-ctx.Done():
-		return "", fmt.Errorf("serial read canceled or timed out: %w", ctx.Err())
-	case err := <-readErrCh:
-		return "", err
-	case data := <-dataCh:
-		// data 就是完整输出
-		result = data
+		if n == 0 {
+			break
+		}
+		result = append(result, buf[:n]...)
 	}
 
 	if len(result) == 0 {
-		return "", errors.New("no response from serial device before context done")
+		return "", errors.New("no response from serial device within timeout")
 	}
 
-	// 按你原来的逻辑清洗数据
 	lines := strings.Split(string(result), "\n")
 
-	// 删除第一行（命令回显）
+	// 删除第一行（通常是命令回显，如 "cat /proc/stat"）
 	if len(lines) > 0 {
 		lines = lines[1:]
 	}
 
-	// 删除最后一行（shell 提示符）
+	// 删除最后一行（通常是 shell 提示符，如 "HexDeep:~# "）
 	if len(lines) > 0 {
 		last := strings.TrimSpace(lines[len(lines)-1])
 		if last == "" || strings.Contains(last, ":") || strings.HasSuffix(last, "#") {
@@ -76,13 +56,9 @@ func SerialCommand(mode *serial.Mode, portName string, ctx context.Context, comm
 		}
 	}
 
+	// 合并干净的数据
 	cleaned := strings.Join(lines, "\n")
 	cleaned = strings.TrimSpace(cleaned)
 
-	// 原代码中 additional slicing cleaned[9:]，保留原意
-	if len(cleaned) > 9 {
-		return cleaned[9:], nil
-	}
-
-	return cleaned, nil
+	return string(cleaned[9:]), nil
 }

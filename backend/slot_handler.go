@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -33,19 +33,20 @@ func (h *Handler) ListPoweredSlot(c echo.Context) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			ctx, canc := context.WithTimeout(c.Request().Context(), 1*time.Second)
-			defer canc()
-			mac, ip, err := h.Proc.SlotSerial.GetMacIP(ctx, slot)
+			timeout := 100 * time.Millisecond
+			mac, ip, err := h.Proc.SlotSerial.GetMacIP(slot, timeout)
 			if err != nil {
+				fmt.Printf("failed to get mac and ip: %v\n", err)
 				mac, ip = "", ""
 			}
-			temp, err := h.Proc.SlotSerial.GetTemp(ctx, slot)
+			temp, err := h.Proc.SlotSerial.GetTemp(slot, timeout)
 			if err != nil {
+				fmt.Printf("failed to get temp: %v\n", err)
 				temp = ""
 			}
 			ch <- SlotStatus{
 				Slot:   slot,
-				Active: h.Proc.SlotSerial.IsActive(ctx, slot),
+				Active: h.Proc.SlotSerial.IsActive(slot, timeout),
 				Mac:    mac,
 				IP:     ip,
 				Temp:   temp,

@@ -1,9 +1,9 @@
 package proc
 
 import (
-	"context"
 	"strings"
 	"sync"
+	"time"
 
 	"go.bug.st/serial"
 )
@@ -12,7 +12,7 @@ type SwitchSerial struct {
 	Mu sync.Mutex
 }
 
-func (s *SwitchSerial) ShowInterface(ctx context.Context) (map[string]string, error) {
+func (s *SwitchSerial) ShowInterface(timeout time.Duration) (map[string]string, error) {
 
 	s.Mu.Lock()
 	rawResult, err := SerialCommand(
@@ -23,7 +23,7 @@ func (s *SwitchSerial) ShowInterface(ctx context.Context) (map[string]string, er
 			StopBits: serial.OneStopBit,
 		},
 		"/dev/ttyS3",
-		ctx,
+		timeout,
 		"show interface\n",
 	)
 	s.Mu.Unlock()

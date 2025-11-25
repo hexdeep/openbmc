@@ -1,9 +1,9 @@
 package proc
 
 import (
-	"context"
 	"strings"
 	"sync"
+	"time"
 
 	"go.bug.st/serial"
 )
@@ -12,7 +12,7 @@ type SlotSerial struct {
 	Mu [48]sync.Mutex
 }
 
-func (s *SlotSerial) IsActive(ctx context.Context, id string) bool {
+func (s *SlotSerial) IsActive(id string, timeout time.Duration) bool {
 
 	ttyId, err := SlotIDToTTY(id)
 	if err != nil {
@@ -30,33 +30,23 @@ func (s *SlotSerial) IsActive(ctx context.Context, id string) bool {
 	}
 
 	buf := make([]byte, 256)
-	resultCh := make(chan bool, 1)
 
-	go func() {
-		n, err := port.Read(buf)
-		if err != nil || n == 0 {
-			resultCh <- false
-			return
-		}
-		resultCh <- true
-	}()
-
-	select {
-	case <-ctx.Done():
+	n, err := port.Read(buf)
+	if err != nil || n == 0 {
 		return false
-	case ok := <-resultCh:
-		return ok
+	} else {
+		return true
 	}
 }
 
-func (s *SlotSerial) GetMacIP(ctx context.Context, id string) (string, string, error) {
+func (s *SlotSerial) GetMacIP(id string, timeout time.Duration) (string, string, error) {
 
 	ttyId, err := SlotIDToTTY(id)
 	if err != nil {
 		return "", "", err
 	}
 
-	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, ctx, "ifconfig\n")
+	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "ifconfig\n")
 	if err != nil {
 		return "", "", err
 	}
@@ -66,14 +56,14 @@ func (s *SlotSerial) GetMacIP(ctx context.Context, id string) (string, string, e
 	return strings.Fields(lines[0])[4], strings.Split(strings.Fields(lines[1])[1], ":")[1], nil
 }
 
-func (s *SlotSerial) GetTemp(ctx context.Context, id string) (string, error) {
+func (s *SlotSerial) GetTemp(id string, timeout time.Duration) (string, error) {
 
 	ttyId, err := SlotIDToTTY(id)
 	if err != nil {
 		return "", nil
 	}
 
-	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, ctx, "cat /sys/class/thermal/thermal_zone0/temp\n")
+	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /sys/class/thermal/thermal_zone0/temp\n")
 	if err != nil {
 		return "", err
 	}
