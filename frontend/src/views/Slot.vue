@@ -26,6 +26,8 @@ const { t } = useI18n({ messages: {
 interface SubPower {
   id: string;
   active: boolean;
+  mac: string;
+  temp: string;
 }
 
 const subPowers = ref<SubPower[]>([])
@@ -43,9 +45,14 @@ interface PoweredSlot {
   temperature: number;
 }
 
-
 const poweredSlots = ref<PoweredSlot[]>([])
-request('GET', '/powered-slot').then(v => poweredSlots.value = v)
+const loadPoweredSlots = () => request<PoweredSlot[]>('GET', '/powered-slot').then(v => poweredSlots.value = v.sort((a, b) => a.slot - b.slot))
+loadPoweredSlots()
+
+const load = () => {
+  loadSubPowers()
+  loadPoweredSlots()
+}
 </script>
 
 <template>
@@ -62,10 +69,10 @@ request('GET', '/powered-slot').then(v => poweredSlots.value = v)
       </div>
       <div class="grid grid-cols-6 grid-rows-8 gap-4 grid-flow-col">
         <el-button
-          class="!m-0"
+          class="m-0!"
           v-for="p in subPowers"
           :type="p.active ? 'success' : 'warning'"
-          @click="request('POST', `/interfaces/${p.id}/power-${p.active ? 'off' : 'on'}`).then(loadSubPowers)"
+          @click="request('POST', `/slot/${p.id}/power-${p.active ? 'off' : 'on'}`).then(load)"
         >
           {{p.id}} {{p.active ? t('powered') : t('notPowered')}}
         </el-button>
@@ -86,6 +93,7 @@ request('GET', '/powered-slot').then(v => poweredSlots.value = v)
           </template>
         </el-table-column>
         <el-table-column label="IP" prop="ip" />
+        <el-table-column label="MAC" prop="mac" />
         <el-table-column label="CPU" prop="cpuUsage" :formatter="({ cpuUsage }) => `${cpuUsage} %`" />
         <el-table-column :label="t('disk')" width="200">
           <template #default="{ row }">
@@ -96,12 +104,12 @@ request('GET', '/powered-slot').then(v => poweredSlots.value = v)
         </el-table-column>
         <el-table-column
           :label="t('temperature')"
-          prop="temperature"
-          :formatter="({ temperature }) => `${temperature} °C`"
+          prop="temp"
+          :formatter="({ temp }) => `${temp} °C`"
         />
         <el-table-column :label="t('operation')" width="200">
           <template #default="{ row }">
-            <el-button type="danger" size="small" @click="request('POST', `/interfaces/${row.id}/power-off`)">
+            <el-button type="danger" size="small" @click="request('POST', `/slot/${row.slot}/power-off`).then(load)">
               {{t('powerOff')}}
             </el-button>
             <el-button type="success" size="small">

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
 )
@@ -12,7 +15,9 @@ func (h *Handler) ListOpticalPort(c echo.Context) error {
 		Status string `json:"status"`
 	}
 
-	interfaces, err := h.SerialShowInterface()
+	ctx, canc := context.WithTimeout(c.Request().Context(), 1*time.Second)
+	defer canc()
+	interfaces, err := h.Proc.SwitchSerial.ShowInterface(ctx)
 	if err != nil {
 		return err
 	}

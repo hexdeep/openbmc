@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {request} from '@/utils/axios';
+import {delay} from '@/utils/utils';
 import {Refresh} from '@element-plus/icons-vue';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
@@ -40,10 +41,10 @@ loadMainPowers()
           {{p.active ? t('powered') : t('notPowered')}}
         </el-tag>
         <el-button-group>
-          <el-button @click="request('POST', `/main-power/${p.id}/on`)">
+          <el-button @click="request('POST', `/main-power/${p.id}/on`).then(delay(500)).then(loadMainPowers)">
             {{t('powerOn')}}
           </el-button>
-          <el-button @click="request('POST', `/main-power/${p.id}/off`)">
+          <el-button @click="request('POST', `/main-power/${p.id}/off`).then(delay(500)).then(loadMainPowers)">
             {{t('powerOff')}}
           </el-button>
         </el-button-group>

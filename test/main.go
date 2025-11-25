@@ -2,24 +2,20 @@ package main
 
 import (
 	"fmt"
-	"iter"
+	"log"
+	"os/exec"
 )
 
-func Countdown(n int) iter.Seq[int] {
-	return func(yield func(int) bool) {
-		for i := n; i >= 0; i-- {
-			if !yield(i) {
-				return
-			}
-		}
-	}
-}
-
 func main() {
-	for v := range Countdown(5) {
-		fmt.Println(v)
-		if v == 2 {
-			break // stops early
-		}
+
+	output := exec.Command("/root/rkdeveloptool/rkdeveloptool", "ld")
+	o, err := output.Output()
+	if err != nil {
+		log.Fatalf("failed to output: %v\n", err)
 	}
+	str := string(o)
+
+	fmt.Println(str)
+	fmt.Printf("equal: %v\n", str == "not found any devices!\n")
+
 }

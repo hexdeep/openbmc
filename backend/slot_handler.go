@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"strconv"
 	"sync"
 	"time"
 
@@ -19,8 +18,11 @@ func (h *Handler) ListPoweredSlot(c echo.Context) error {
 	slots := status.GetPoweredSlots()
 
 	type SlotStatus struct {
-		Slot   int  `json:"slot"`
-		Active bool `json:"active"`
+		Slot   string `json:"slot"`
+		Active bool   `json:"active"`
+		Mac    string `json:"mac"`
+		IP     string `json:"ip"`
+		Temp   string `json:"temp"`
 	}
 
 	ch := make(chan SlotStatus, len(slots))
@@ -33,9 +35,20 @@ func (h *Handler) ListPoweredSlot(c echo.Context) error {
 			defer wg.Done()
 			ctx, canc := context.WithTimeout(c.Request().Context(), 1*time.Second)
 			defer canc()
+			mac, ip, err := h.Proc.SlotSerial.GetMacIP(ctx, slot)
+			if err != nil {
+				mac, ip = "", ""
+			}
+			temp, err := h.Proc.SlotSerial.GetTemp(ctx, slot)
+			if err != nil {
+				temp = ""
+			}
 			ch <- SlotStatus{
-				Slot:   int(slot),
-				Active: slot.IsActive(ctx),
+				Slot:   slot,
+				Active: h.Proc.SlotSerial.IsActive(ctx, slot),
+				Mac:    mac,
+				IP:     ip,
+				Temp:   temp,
 			}
 		}()
 	}
@@ -51,6 +64,7 @@ func (h *Handler) ListPoweredSlot(c echo.Context) error {
 	return c.JSON(200, Res("", results))
 }
 
+/*
 func (h *Handler) FlushSlot(c echo.Context) error {
 
 	id, err := strconv.Atoi(c.Param("id"))
@@ -85,3 +99,4 @@ func (h *Handler) FlushSlot(c echo.Context) error {
 	return c.JSON(200, Res("刷机模式进入成功", nil))
 
 }
+*/

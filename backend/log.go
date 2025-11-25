@@ -40,9 +40,6 @@ func ListLog(h *Handler, c echo.Context, r *ListLogRequest) error {
 		q = q.Where("created_at <= ?", r.To)
 	}
 
-	fmt.Printf("the from: %v\n", r.From)
-	fmt.Printf("the to: %v\n", r.To)
-
 	if r.ClientIP != "" {
 		q = q.Where("client_ip = ?", r.ClientIP)
 	}

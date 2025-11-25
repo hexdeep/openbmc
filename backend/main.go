@@ -1,13 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/glebarez/sqlite"
 	"github.com/kelseyhightower/envconfig"
-	"go.bug.st/serial"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -23,19 +21,10 @@ func main() {
 		LogDuration:     7,
 		LogLevel:        LogInfo,
 		FilePath:        "/data/file",
-		SerialTimeout:   500,
-		Serial: &serial.Mode{
-			BaudRate: 115200,
-			DataBits: 8,
-			Parity:   serial.NoParity,
-			StopBits: serial.OneStopBit,
-		},
-		SerialFile: "/dev/ttyS3",
 	}
 	if err := envconfig.Process("", &config); err != nil {
 		log.Fatalf("failed to load config: %v\n", err)
 	}
-	fmt.Println(config)
 
 	db, err := gorm.Open(sqlite.Open(config.DBFile), &gorm.Config{
 		TranslateError: true,
@@ -54,9 +43,6 @@ func main() {
 		Logs:      make(chan *Log, 100),
 		Paginator: NewPaginator(config.DefaultSize),
 		DB:        db,
-		Proc: &Proc{
-			SubPwrStatus: &SubPwrStatusProc{},
-		},
 	}
 
 	go handler.Log()

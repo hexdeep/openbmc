@@ -6,15 +6,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hexdeep/openbmc/backend/proc"
 	"gorm.io/gorm"
 )
 
-type Proc struct {
-	SubPwrStatus *SubPwrStatusProc
-}
-
 type Handler struct {
-	Proc   *Proc
+	Proc   proc.Proc
 	Config *Config
 	Logs   chan *Log
 	*Paginator
