@@ -13,13 +13,14 @@ import (
 func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 
 	type SlotStatus struct {
-		Slot     string `json:"slot"`
-		Active   bool   `json:"active"`
-		Mac      string `json:"mac"`
-		IP       string `json:"ip"`
-		Temp     string `json:"temp"`
-		MemUsed  int    `json:"memUsed"`
-		MemTotal int    `json:"memTotal"`
+		Slot     string  `json:"slot"`
+		Active   bool    `json:"active"`
+		Mac      string  `json:"mac"`
+		IP       string  `json:"ip"`
+		Temp     string  `json:"temp"`
+		MemUsed  int     `json:"memUsed"`
+		MemTotal int     `json:"memTotal"`
+		UpTime   float64 `json:"uptime"`
 	}
 
 	ctx := c.Request().Context()
@@ -60,6 +61,7 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 					if err != nil {
 						fmt.Printf("failed to get mem info: %v\n", err)
 					}
+					uptime, _ := h.Proc.SlotSerial.GetUpTime(slot, timeout)
 					ch <- SlotStatus{
 						Slot:     slot,
 						Active:   h.Proc.SlotSerial.IsActive(slot, timeout),
@@ -68,6 +70,7 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 						Temp:     temp,
 						MemUsed:  memUsed,
 						MemTotal: memTotal,
+						UpTime:   uptime,
 					}
 				}()
 			}

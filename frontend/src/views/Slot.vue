@@ -18,6 +18,7 @@ const { t } = useI18n({ messages: {
     detail: '详情',
     updateSystem: '升级',
     enterTerminal: '终端',
+    uptime: '开机时间',
   },
 } })
 
@@ -30,6 +31,25 @@ const poweredSlots = computed(() => {
     return 0
   }
 })
+
+function formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    const parts: string[] = [];
+
+    if (hours > 0) {
+        parts.push(`${hours}h`);
+    }
+
+    if (minutes > 0 || hours === 0) {
+        // Show minutes always if there are no hours, e.g. "0min"
+        parts.push(`${minutes}min`);
+    }
+
+    return parts.join(" ");
+}
+
 /*
 const poweredSlots = ref<PoweredSlot[]>([])
 const loadPoweredSlots = () => request<PoweredSlot[]>('GET', '/powered-slot').then(v => poweredSlots.value = v.sort((a, b) => a.slot - b.slot))
@@ -55,7 +75,8 @@ loadPoweredSlots()
         </el-table-column>
         <el-table-column label="IP" prop="ip" />
         <el-table-column label="MAC" prop="mac" />
-        <el-table-column label="CPU" prop="cpuUsage" :formatter="({ cpuUsage }) => `${cpuUsage} %`" />
+        <el-table-column :label="t('uptime')" prop="uptime" :formatter="({ uptime }) => formatDuration(uptime)" />
+        <el-table-column label="CPU" prop="cpu" :formatter="({ cpuUsage }) => `${cpuUsage} %`" />
         <el-table-column :label="t('mem')" width="200">
           <template #default="{ row }">
             {{formatSize(row.memUsed)}} /

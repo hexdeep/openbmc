@@ -108,3 +108,23 @@ func (s *SlotSerial) GetMem(id string, timeout time.Duration) (int, int, error) 
 
 	return total - free, total, nil
 }
+
+func (s *SlotSerial) GetUpTime(id string, timeout time.Duration) (float64, error) {
+
+	ttyId, err := SlotIDToTTY(id)
+	if err != nil {
+		return 0, err
+	}
+
+	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/uptime\n")
+	if err != nil {
+		return 0, err
+	}
+
+	value, err := strconv.ParseFloat(strings.Fields(data)[0], 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return value, nil
+}
