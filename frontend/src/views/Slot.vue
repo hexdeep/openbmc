@@ -8,11 +8,13 @@ import {useI18n} from 'vue-i18n';
 const { t } = useI18n({ messages: {
   zh: {
     slot: '插槽',
+    status: '状态',
     deviceListTitle: '通电接口列表',
     temperature: '温度',
     mem: '内存',
     powerStatus: '电源状态',
     operation: '操作',
+    load: '负载',
     powerOn: '上电',
     powerOff: '下电',
     detail: '详情',
@@ -65,8 +67,8 @@ loadPoweredSlots()
         {{t('deviceListTitle')}}
       </div>
       <el-table :data="poweredSlots" class="rounded-1xl">
-        <el-table-column label="t('slot')" prop="slot" />
-        <el-table-column label="status">
+        <el-table-column :label="t('slot')" prop="slot" />
+        <el-table-column :label="t('status')">
           <template #default="{ row }">
             <el-tag :type="row.active ? 'success' : 'danger'">
               {{row.active ? '运行' : '异常'}}
@@ -76,7 +78,7 @@ loadPoweredSlots()
         <el-table-column label="IP" prop="ip" />
         <el-table-column label="MAC" prop="mac" />
         <el-table-column :label="t('uptime')" prop="uptime" :formatter="({ uptime }) => formatDuration(uptime)" />
-        <el-table-column label="CPU" prop="cpu" :formatter="({ cpuUsage }) => `${cpuUsage} %`" />
+        <el-table-column :label="t('load')" prop="load" :formatter="({ load }) => `${load} %`" />
         <el-table-column :label="t('mem')" width="200">
           <template #default="{ row }">
             {{formatSize(row.memUsed)}} /

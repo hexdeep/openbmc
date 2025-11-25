@@ -24,6 +24,10 @@ const router = createRouter({
           component: () => import('@/views/Slot.vue'),
         },
         {
+          path: 'switch',
+          component: () => import('@/views/Switch.vue'),
+        },
+        {
           path: 'images',
           component: () => import('@/views/ImageList.vue'),
         },

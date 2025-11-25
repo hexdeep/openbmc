@@ -21,6 +21,7 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 		MemUsed  int     `json:"memUsed"`
 		MemTotal int     `json:"memTotal"`
 		UpTime   float64 `json:"uptime"`
+		Load     float64 `json:"load"`
 	}
 
 	ctx := c.Request().Context()
@@ -62,6 +63,7 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 						fmt.Printf("failed to get mem info: %v\n", err)
 					}
 					uptime, _ := h.Proc.SlotSerial.GetUpTime(slot, timeout)
+					load, _ := h.Proc.SlotSerial.GetLoad(slot, timeout)
 					ch <- SlotStatus{
 						Slot:     slot,
 						Active:   h.Proc.SlotSerial.IsActive(slot, timeout),
@@ -71,6 +73,7 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 						MemUsed:  memUsed,
 						MemTotal: memTotal,
 						UpTime:   uptime,
+						Load:     load,
 					}
 				}()
 			}

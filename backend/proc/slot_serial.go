@@ -1,6 +1,7 @@
 package proc
 
 import (
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -64,7 +65,7 @@ func (s *SlotSerial) GetMacIP(id string, timeout time.Duration) (string, string,
 		return "", "", nil
 	}
 
-	return strings.Fields(lines[target])[4], strings.Split(strings.Fields(lines[target+1])[1], ":")[1], nil
+	return Idx(strings.Fields(lines[target]), 4), Idx(strings.Split(Idx(strings.Fields(Idx(lines, target+1)), 1), ":"), 1), nil
 }
 
 func (s *SlotSerial) GetTemp(id string, timeout time.Duration) (string, error) {
@@ -79,7 +80,12 @@ func (s *SlotSerial) GetTemp(id string, timeout time.Duration) (string, error) {
 		return "", err
 	}
 
-	return data[:len(data)-3], nil
+	n := len(data)
+	if n > 3 {
+		return data[:len(data)-3], nil
+	} else {
+		return "", nil
+	}
 }
 
 func (s *SlotSerial) GetMem(id string, timeout time.Duration) (int, int, error) {
@@ -96,12 +102,12 @@ func (s *SlotSerial) GetMem(id string, timeout time.Duration) (int, int, error) 
 
 	lines := strings.Split(data, "\n")
 
-	total, err := strconv.Atoi(strings.Fields(lines[0])[1] + "000")
+	total, err := strconv.Atoi(Idx(strings.Fields(Idx(lines, 0)), 1) + "000")
 	if err != nil {
 		return 0, 0, err
 	}
 
-	free, err := strconv.Atoi(strings.Fields(lines[1])[1] + "000")
+	free, err := strconv.Atoi(Idx(strings.Fields(Idx(lines, 1)), 1) + "000")
 	if err != nil {
 		return 0, 0, err
 	}
@@ -121,10 +127,30 @@ func (s *SlotSerial) GetUpTime(id string, timeout time.Duration) (float64, error
 		return 0, err
 	}
 
-	value, err := strconv.ParseFloat(strings.Fields(data)[0], 64)
+	value, err := strconv.ParseFloat(Idx(strings.Fields(data), 0), 64)
 	if err != nil {
 		return 0, err
 	}
 
 	return value, nil
+}
+
+func (s *SlotSerial) GetLoad(id string, timeout time.Duration) (float64, error) {
+
+	ttyId, err := SlotIDToTTY(id)
+	if err != nil {
+		return 0, err
+	}
+
+	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/loadavg\n")
+	if err != nil {
+		return 0, err
+	}
+
+	value, err := strconv.ParseFloat(Idx(strings.Fields(data), 0), 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return math.Round(value*1250) / 100, nil
 }

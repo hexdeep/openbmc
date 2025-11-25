@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DocumentAdd, DocumentCopy, Monitor, Phone, Picture, Setting} from '@element-plus/icons-vue';
+import {DocumentAdd, DocumentCopy, Monitor, Phone, Picture, Setting, Switch} from '@element-plus/icons-vue';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 
@@ -9,6 +9,7 @@ const { t } = useI18n({ messages: {
   zh: {
     dashboard: '仪表板',
     slots: '插槽列表',
+    switch: '交换机',
     imageList: '镜像列表',
     hideNavbar: '隐藏侧边栏',
     fileManage: '文件管理',
@@ -33,6 +34,11 @@ const navbarItems: NavbarItem[] = [
     label: t('slots'),
     icon: Phone,
     path: '/slots',
+  },
+  {
+    label: t('switch'),
+    icon: Switch,
+    path: '/switch',
   },
   {
     label: t('imageList'),
