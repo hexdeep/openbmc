@@ -37,6 +37,10 @@ func GetRouter(h *Handler) *echo.Echo {
 	pro.GET("/sub-power", h.ListSubPower)
 
 	pro.GET("/powered-slot", WithSSE(h, ListPoweredSlot))
+	pro.POST("/bmc/opentty", h.BMCOpenTTY)
+	pro.POST("/bmc/closetty", h.BMCCloseTTY)
+	pro.POST("/switch/opentty", h.SwitchOpenTTY)
+	pro.POST("/switch/closetty", h.SwitchCloseTTY)
 
 	r.GET("/*", HandleFrontend)
 

@@ -1,15 +1,19 @@
 package proc
 
 import (
+	"os"
+	"os/exec"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"go.bug.st/serial"
 )
 
 type SwitchSerial struct {
-	Mu sync.Mutex
+	Mu  sync.Mutex
+	TTY *os.Process
 }
 
 func (s *SwitchSerial) ShowInterface(timeout time.Duration) (map[string]string, error) {
@@ -54,4 +58,27 @@ func (s *SwitchSerial) ShowInterface(timeout time.Duration) (map[string]string, 
 	}
 
 	return result, nil
+}
+
+func (s *SwitchSerial) OpenTTY() error {
+
+	s.Mu.Lock()
+	cmd := exec.Command("./ttyd.aarch64", "-W", "microcom", "-s", "115200", "/dev/ttyS3")
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	s.TTY = cmd.Process
+	return nil
+}
+
+func (s *SwitchSerial) CloseTTY() error {
+
+	if err := s.TTY.Signal(syscall.SIGTERM); err != nil {
+		return err
+	}
+
+	s.Mu.Unlock()
+	s.TTY = nil
+	return nil
 }

@@ -5,6 +5,7 @@ import Description from './Description.vue';
 import Power from './Power.vue';
 import OpticalPort from './OpticalPort.vue';
 import SlotPower from './SlotPower.vue';
+import Temporary from './Temporary.vue';
 
 </script>
 
@@ -18,6 +19,8 @@ import SlotPower from './SlotPower.vue';
       <slot-power />
 
       <fan />
+
+      <temporary />
 
     </div>
 

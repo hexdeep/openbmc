@@ -2,6 +2,7 @@ package proc
 
 import (
 	"math"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -11,7 +12,8 @@ import (
 )
 
 type SlotSerial struct {
-	Mu [48]sync.Mutex
+	Mu  [48]sync.Mutex
+	TTY [48]*os.Process
 }
 
 func (s *SlotSerial) IsActive(id string, timeout time.Duration) bool {
