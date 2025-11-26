@@ -1,8 +1,8 @@
-package main
+package handler
 
 import "time"
 
-var tables = []any{
+var Tables = []any{
 	new(Token),
 	new(Log),
 }

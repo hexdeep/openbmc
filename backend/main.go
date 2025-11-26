@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/glebarez/sqlite"
+	h "github.com/hexdeep/openbmc/backend/handler"
 	"github.com/kelseyhightower/envconfig"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -12,14 +13,14 @@ import (
 
 func main() {
 
-	config := Config{
+	config := h.Config{
 		Address:         ":8080",
 		DBFile:          "/data/data.db",
 		CleanerInterval: 600,
 		TokenDuration:   7 * 24 * 60,
 		DefaultSize:     10,
 		LogDuration:     7,
-		LogLevel:        LogInfo,
+		LogLevel:        h.LogInfo,
 		FilePath:        "/data/file",
 	}
 	if err := envconfig.Process("", &config); err != nil {
@@ -34,21 +35,21 @@ func main() {
 		log.Fatalf("failed to connect to database: %v\n", err)
 	}
 
-	if err := db.AutoMigrate(tables...); err != nil {
+	if err := db.AutoMigrate(h.Tables...); err != nil {
 		log.Fatalf("failed to auto migrate database: %v\n", err)
 	}
 
-	handler := &Handler{
+	handler := &h.Handler{
 		Config:    &config,
-		Logs:      make(chan *Log, 100),
-		Paginator: NewPaginator(config.DefaultSize),
+		Logs:      make(chan *h.Log, 100),
+		Paginator: h.NewPaginator(config.DefaultSize),
 		DB:        db,
 	}
 
 	go handler.Log()
 	go handler.ClearData(time.Duration(config.CleanerInterval) * time.Second)
 
-	router := GetRouter(handler)
+	router := h.GetRouter(handler)
 
 	if config.SSL.Enabled {
 		err = router.StartTLS(config.Address, config.SSL.Cert, config.SSL.Key)

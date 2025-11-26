@@ -11,4 +11,5 @@ type Proc struct {
 	BootOff       BootOff
 	SlotSerial    SlotSerial
 	SwitchSerial  SwitchSerial
+	BMCSerial     BMCSerial
 }

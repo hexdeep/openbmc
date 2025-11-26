@@ -11,9 +11,9 @@ npm install
 npm run build
 
 echo "===== 复制前端 dist 到 backend ====="
-rm -rf "$BACKEND_DIR/frontend"
-mkdir -p "$BACKEND_DIR/frontend"
-cp -r "$FRONTEND_DIR/dist/"* "$BACKEND_DIR/frontend/"
+rm -rf "$BACKEND_DIR/handler/frontend"
+mkdir -p "$BACKEND_DIR/handler/frontend"
+cp -r "$FRONTEND_DIR/dist/"* "$BACKEND_DIR/handler/frontend/"
 
 echo "===== 构建后端 ====="
 cd "$BACKEND_DIR"
