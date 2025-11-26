@@ -16,7 +16,7 @@ type SwitchSerial struct {
 	TTY *os.Process
 }
 
-func (s *SwitchSerial) ShowInterface(timeout time.Duration) (map[string]string, error) {
+func (s *SwitchSerial) ShowInterface(timeout time.Duration) (map[string]bool, error) {
 
 	s.Mu.Lock()
 	rawResult, err := SerialCommand(
@@ -36,7 +36,7 @@ func (s *SwitchSerial) ShowInterface(timeout time.Duration) (map[string]string, 
 	}
 
 	lines := strings.Split(rawResult, "\n")
-	result := make(map[string]string)
+	result := make(map[string]bool)
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -54,7 +54,11 @@ func (s *SwitchSerial) ShowInterface(timeout time.Duration) (map[string]string, 
 			continue
 		}
 
-		result[fields[0]] = fields[2]
+		if fields[2] == "up" {
+			result[Idx(fields, 0)] = true
+		} else {
+			result[Idx(fields, 0)] = false
+		}
 	}
 
 	return result, nil

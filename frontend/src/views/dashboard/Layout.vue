@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Usage from './Usage.vue';
 import Fan from './Fan.vue';
-import Description from './Description.vue';
 import Power from './Power.vue';
 import OpticalPort from './OpticalPort.vue';
 import SlotPower from './SlotPower.vue';
@@ -10,29 +9,19 @@ import Temporary from './Temporary.vue';
 </script>
 
 <template>
-  <div class="flex flex-col lg:flex-row gap-4 p-4">
+  <div class="flex flex-col gap-4 p-4">
 
-    <div class="basis-2/3 flex flex-col gap-4">
+    <usage />
 
-      <usage />
+    <power />
 
-      <slot-power />
+    <slot-power />
 
-      <fan />
+    <fan />
 
-      <temporary />
+    <temporary />
 
-    </div>
-
-    <div class="basis-1/3 flex flex-col gap-4">
-
-      <description />
-
-      <power />
-
-      <optical-port />
-
-    </div>
+    <optical-port />
 
   </div>
 </template>

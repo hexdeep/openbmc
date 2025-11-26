@@ -11,7 +11,7 @@ func (h *Handler) ListOpticalPort(c echo.Context) error {
 
 	type OpticalPort struct {
 		Port   string `json:"port"`
-		Status string `json:"status"`
+		Active bool   `json:"active"`
 	}
 
 	interfaces, err := h.Proc.SwitchSerial.ShowInterface(time.Second)
@@ -20,6 +20,6 @@ func (h *Handler) ListOpticalPort(c echo.Context) error {
 	}
 
 	return c.JSON(200, Res("", lo.Map([]string{"49", "50", "51", "52"}, func(item string, index int) *OpticalPort {
-		return &OpticalPort{Port: item, Status: interfaces[item]}
+		return &OpticalPort{Port: item, Active: interfaces[item]}
 	})))
 }

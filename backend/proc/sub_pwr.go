@@ -6,17 +6,20 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 type SubPwrStatus struct {
 	Mu sync.Mutex
 }
 
-type SubPowerStatus [48]bool
+type SubPowerStatus struct {
+	Status [48]bool
+}
 
 func (s *SubPowerStatus) GetPoweredSlots() []string {
 	result := make([]string, 0)
-	for port, active := range s {
+	for port, active := range s.Status {
 		if active {
 			result = append(result, strconv.Itoa(port+1))
 		}
@@ -59,7 +62,7 @@ func (p *SubPwrStatus) Get() (*SubPowerStatus, error) {
 		// 8 channels per group → bits 0,2,4,...,14
 		for bit := range 8 {
 			bitPos := bit * 2
-			result[idx] = (value & (1 << bitPos)) != 0
+			result.Status[idx] = (value & (1 << bitPos)) != 0
 			idx++
 		}
 	}
@@ -78,8 +81,11 @@ func (s *SlotPwrOn) Do(id string) error {
 	}
 
 	s.Mu.Lock()
-	defer s.Mu.Unlock()
-	return os.WriteFile("/proc/hexdeep_sub_pwr/pwr_on", []byte(id), 0)
+	time.Sleep(100 * time.Millisecond)
+	err := os.WriteFile("/proc/hexdeep_sub_pwr/pwr_on", []byte(id), 0)
+	time.Sleep(100 * time.Millisecond)
+	s.Mu.Unlock()
+	return err
 }
 
 type SlotPwrOff struct {
@@ -93,8 +99,11 @@ func (s *SlotPwrOff) Do(id string) error {
 	}
 
 	s.Mu.Lock()
-	defer s.Mu.Unlock()
-	return os.WriteFile("/proc/hexdeep_sub_pwr/pwr_off", []byte(id), 0)
+	time.Sleep(100 * time.Millisecond)
+	err := os.WriteFile("/proc/hexdeep_sub_pwr/pwr_off", []byte(id), 0)
+	time.Sleep(100 * time.Millisecond)
+	s.Mu.Unlock()
+	return err
 }
 
 func IsSlotIDValid(id string) bool {

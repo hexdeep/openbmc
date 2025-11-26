@@ -1,19 +1,40 @@
 package proc
 
 import (
+	"fmt"
 	"math"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"go.bug.st/serial"
 )
 
 type SlotSerial struct {
-	Mu  [48]sync.Mutex
-	TTY [48]*os.Process
+	Items [48]SlotSerialItem
+}
+
+func (s *SlotSerial) GetItem(id string) (*SlotSerialItem, error) {
+
+	slot, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert id to int: %w\n", err)
+	}
+
+	if slot < 1 || slot > 48 {
+		return nil, ErrInvalidID
+	}
+
+	return &s.Items[slot], nil
+}
+
+type SlotSerialItem struct {
+	Mu  sync.Mutex
+	TTY *os.Process
 }
 
 func (s *SlotSerial) IsActive(id string, timeout time.Duration) bool {
@@ -22,6 +43,14 @@ func (s *SlotSerial) IsActive(id string, timeout time.Duration) bool {
 	if err != nil {
 		return false
 	}
+
+	item, err := s.GetItem(id)
+	if err != nil {
+		return false
+	}
+
+	item.Mu.Lock()
+	defer item.Mu.Unlock()
 
 	port, err := serial.Open(ttyId, &serial.Mode{BaudRate: 1500000})
 	if err != nil {
@@ -51,7 +80,14 @@ func (s *SlotSerial) GetMacIP(id string, timeout time.Duration) (string, string,
 		return "", "", err
 	}
 
+	item, err := s.GetItem(id)
+	if err != nil {
+		return "", "", err
+	}
+
+	item.Mu.Lock()
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "ifconfig\n")
+	item.Mu.Unlock()
 	if err != nil {
 		return "", "", err
 	}
@@ -77,7 +113,14 @@ func (s *SlotSerial) GetTemp(id string, timeout time.Duration) (string, error) {
 		return "", nil
 	}
 
+	item, err := s.GetItem(id)
+	if err != nil {
+		return "", fmt.Errorf("failed to get slot temperature: %w\n", err)
+	}
+
+	item.Mu.Lock()
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /sys/class/thermal/thermal_zone0/temp\n")
+	item.Mu.Unlock()
 	if err != nil {
 		return "", err
 	}
@@ -97,7 +140,14 @@ func (s *SlotSerial) GetMem(id string, timeout time.Duration) (int, int, error) 
 		return 0, 0, nil
 	}
 
+	item, err := s.GetItem(id)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to get slot mem: %w\n", err)
+	}
+
+	item.Mu.Lock()
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/meminfo\n")
+	item.Mu.Unlock()
 	if err != nil {
 		return 0, 0, err
 	}
@@ -124,7 +174,14 @@ func (s *SlotSerial) GetUpTime(id string, timeout time.Duration) (float64, error
 		return 0, err
 	}
 
+	item, err := s.GetItem(id)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get slot up time: %v\n", err)
+	}
+
+	item.Mu.Lock()
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/uptime\n")
+	item.Mu.Unlock()
 	if err != nil {
 		return 0, err
 	}
@@ -144,7 +201,14 @@ func (s *SlotSerial) GetLoad(id string, timeout time.Duration) (float64, error) 
 		return 0, err
 	}
 
+	item, err := s.GetItem(id)
+	if err != nil {
+		return 0, err
+	}
+
+	item.Mu.Lock()
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/loadavg\n")
+	item.Mu.Unlock()
 	if err != nil {
 		return 0, err
 	}
@@ -155,4 +219,42 @@ func (s *SlotSerial) GetLoad(id string, timeout time.Duration) (float64, error) 
 	}
 
 	return math.Round(value*1250) / 100, nil
+}
+
+func (s *SlotSerial) OpenTTY(id string) error {
+
+	item, err := s.GetItem(id)
+	if err != nil {
+		return fmt.Errorf("failed to get slot id in open tty: %v\n", err)
+	}
+
+	tty, err := SlotIDToTTY(id)
+	if err != nil {
+		return fmt.Errorf("failed to convert slot id to tty :%v\n", err)
+	}
+
+	item.Mu.Lock()
+	cmd := exec.Command("./ttyd.aarch64", "-W", "microcom", "-s", "1500000", tty)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed  to start slot tty: %v\n", err)
+	}
+
+	item.TTY = cmd.Process
+	return nil
+}
+
+func (s *SlotSerial) CloseTTY(id string) error {
+
+	item, err := s.GetItem(id)
+	if err != nil {
+		return fmt.Errorf("failed to get slot id in close tty: %v\n", err)
+	}
+
+	if err := item.TTY.Signal(syscall.SIGTERM); err != nil {
+		return fmt.Errorf("failed to close slot tty: %v\n", err)
+	}
+
+	item.Mu.Unlock()
+	item.TTY = nil
+	return nil
 }

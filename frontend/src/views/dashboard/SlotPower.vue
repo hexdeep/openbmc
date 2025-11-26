@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import {request} from '@/utils/axios';
+import {ArrowDown, ArrowUp} from '@element-plus/icons-vue';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 
 interface SubPower {
   id: string;
   active: boolean;
-  mac: string;
-  temp: string;
-  memUsed: number;
-  memTotal: number;
 }
 
-const subPowers = ref<SubPower[]>([])
+const subPowers = ref<SubPower[][][]>([])
 const loadSubPowers = () => request('GET', '/sub-power').then(v => subPowers.value = v)
 loadSubPowers()
 
@@ -36,15 +33,27 @@ const { t } = useI18n({ messages: {
         {{t('refresh')}}
       </el-button>
     </div>
-    <div class="grid grid-cols-6 grid-rows-8 gap-4 grid-flow-col">
-      <el-button
-        class="m-0!"
-        v-for="p in subPowers"
-        :type="p.active ? 'success' : 'warning'"
-        @click="request('POST', `/slot/${p.id}/power-${p.active ? 'off' : 'on'}`).then(loadSubPowers)"
-      >
-        {{p.id}} {{p.active ? t('powered') : t('notPowered')}}
-      </el-button>
+    <div class="flex gap-4">
+      <div v-for="pane in subPowers" class="flex flex-col gap-2 rounded-2xl p-4 bg-gray-100">
+        <div v-for="drawer in pane" class="flex flex-col gap-2">
+          <div class="flex gap-2 items-center">
+            <el-button-group size="small">
+              <el-button :icon="ArrowUp" @click="drawer.forEach(slot => request('POST', `/slot/${slot.id}/power-on`).then(loadSubPowers))" />
+              <el-button :icon="ArrowDown" @click="drawer.forEach(slot => request('POST', `/slot/${slot.id}/power-off`).then(loadSubPowers))" />
+            </el-button-group>
+            <el-button
+              v-for="slot in drawer"
+              :key="slot.id"
+              class="m-0!"
+              :type="slot.active ? 'success' : 'warning'"
+              @click="request('POST', `/slot/${slot.id}/power-${slot.active ? 'off' : 'on'}`).then(loadSubPowers)"
+            >
+              {{slot.id}} {{slot.active ? t('powered') : t('notPowered')}}
+            </el-button>
+          </div>
+          <div class="h-px bg-gray-300" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
