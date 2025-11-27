@@ -34,7 +34,7 @@ loadMainPowers()
         {{t('refresh')}}
       </el-button>
     </div>
-    <div class="flex flex-col gap-4">
+    <div class="flex gap-4">
       <div v-for="p in powers" class="card flex items-center gap-4">
         <div>{{p.name}}</div>
         <el-tag :type="p.active ? 'success' : 'warning'">

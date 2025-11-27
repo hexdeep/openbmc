@@ -18,6 +18,16 @@ type SlotSerial struct {
 	Items [48]SlotSerialItem
 }
 
+func (s *SlotSerial) GetPort(id string) (string, error) {
+
+	slot, err := strconv.Atoi(id)
+	if err != nil {
+		return "", err
+	}
+
+	return strconv.Itoa(slot + 7500), nil
+}
+
 func (s *SlotSerial) GetItem(id string) (*SlotSerialItem, error) {
 
 	slot, err := strconv.Atoi(id)
@@ -49,7 +59,9 @@ func (s *SlotSerial) IsActive(id string, timeout time.Duration) bool {
 		return false
 	}
 
-	item.Mu.Lock()
+	if !item.Mu.TryLock() {
+		return false
+	}
 	defer item.Mu.Unlock()
 
 	port, err := serial.Open(ttyId, &serial.Mode{BaudRate: 1500000})
@@ -85,7 +97,9 @@ func (s *SlotSerial) GetMacIP(id string, timeout time.Duration) (string, string,
 		return "", "", err
 	}
 
-	item.Mu.Lock()
+	if !item.Mu.TryLock() {
+		return "", "", nil
+	}
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "ifconfig\n")
 	item.Mu.Unlock()
 	if err != nil {
@@ -118,7 +132,9 @@ func (s *SlotSerial) GetTemp(id string, timeout time.Duration) (string, error) {
 		return "", fmt.Errorf("failed to get slot temperature: %w\n", err)
 	}
 
-	item.Mu.Lock()
+	if !item.Mu.TryLock() {
+		return "", nil
+	}
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /sys/class/thermal/thermal_zone0/temp\n")
 	item.Mu.Unlock()
 	if err != nil {
@@ -145,7 +161,9 @@ func (s *SlotSerial) GetMem(id string, timeout time.Duration) (int, int, error) 
 		return 0, 0, fmt.Errorf("failed to get slot mem: %w\n", err)
 	}
 
-	item.Mu.Lock()
+	if !item.Mu.TryLock() {
+		return 0, 0, nil
+	}
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/meminfo\n")
 	item.Mu.Unlock()
 	if err != nil {
@@ -179,7 +197,9 @@ func (s *SlotSerial) GetUpTime(id string, timeout time.Duration) (float64, error
 		return 0, fmt.Errorf("failed to get slot up time: %v\n", err)
 	}
 
-	item.Mu.Lock()
+	if !item.Mu.TryLock() {
+		return 0, nil
+	}
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/uptime\n")
 	item.Mu.Unlock()
 	if err != nil {
@@ -206,7 +226,9 @@ func (s *SlotSerial) GetLoad(id string, timeout time.Duration) (float64, error) 
 		return 0, err
 	}
 
-	item.Mu.Lock()
+	if !item.Mu.TryLock() {
+		return 0, nil
+	}
 	data, err := SerialCommand(&serial.Mode{BaudRate: 1500000}, ttyId, timeout, "cat /proc/loadavg\n")
 	item.Mu.Unlock()
 	if err != nil {
@@ -233,10 +255,17 @@ func (s *SlotSerial) OpenTTY(id string) error {
 		return fmt.Errorf("failed to convert slot id to tty :%v\n", err)
 	}
 
+	num, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
 	item.Mu.Lock()
-	cmd := exec.Command("./ttyd.aarch64", "-W", "microcom", "-s", "1500000", tty)
+	cmd := exec.Command(
+		"./ttyd.aarch64", "-p", strconv.Itoa(7500+num), "-W", "microcom", "-s", "1500000", tty,
+	)
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed  to start slot tty: %v\n", err)
+		return fmt.Errorf("failed to start slot tty: %v\n", err)
 	}
 
 	item.TTY = cmd.Process

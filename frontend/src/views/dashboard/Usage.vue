@@ -6,7 +6,7 @@ import {useI18n} from 'vue-i18n'
 
 const { t } = useI18n({ messages: {
   zh: {
-    statusSummaryTitle: '状态总览',
+    statusSummaryTitle: 'BMC状态',
     memory: '内存',
     disk: '硬盘',
     used: '使用',

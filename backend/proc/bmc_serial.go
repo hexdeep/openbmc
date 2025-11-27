@@ -16,7 +16,7 @@ func (s *BMCSerial) OpenTTY() error {
 
 	s.Mu.Lock()
 
-	cmd := exec.Command("./ttyd.aarch64", "-W", "sh")
+	cmd := exec.Command("./ttyd.aarch64", "-p", "7500", "-W", "sh")
 	if err := cmd.Start(); err != nil {
 		return err
 	}

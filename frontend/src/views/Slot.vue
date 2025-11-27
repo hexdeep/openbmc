@@ -19,7 +19,9 @@ const { t } = useI18n({ messages: {
     powerOff: '下电',
     detail: '详情',
     updateSystem: '升级',
-    enterTerminal: '终端',
+    openTerminal: '打开终端',
+    closeTerminal: '关闭',
+    enterTerminal: '进入',
     uptime: '开机时间',
   },
 } })
@@ -50,6 +52,10 @@ function formatDuration(seconds: number): string {
     }
 
     return parts.join(" ");
+}
+
+function toTerminal(port: string) {
+  return window.location.href = `http://${window.location.hostname}:${port}`
 }
 
 /*
@@ -91,7 +97,7 @@ loadPoweredSlots()
           prop="temp"
           :formatter="({ temp }) => `${temp} °C`"
         />
-        <el-table-column :label="t('operation')" width="200">
+        <el-table-column :label="t('operation')" width="400">
           <template #default="{ row }">
             <el-button type="danger" size="small" @click="request('POST', `/slot/${row.slot}/power-off`)">
               {{t('powerOff')}}
@@ -99,9 +105,17 @@ loadPoweredSlots()
             <el-button type="success" size="small">
               {{t('updateSystem')}}
             </el-button>
-            <el-button type="primary" size="small">
-              {{t('enterTerminal')}}
-            </el-button>
+            <el-button-group class="ml-2">
+              <el-button type="primary" size="small" @click="request('POST', `/slot/${row.slot}/opentty`)">
+                {{t('openTerminal')}}
+              </el-button>
+              <el-button type="warning" size="small" @click="request('POST', `/slot/${row.slot}/closetty`)">
+                {{t('closeTerminal')}}
+              </el-button>
+              <el-button type="success" size="small" @click="toTerminal(row.port)">
+                {{t('enterTerminal')}}
+              </el-button>
+            </el-button-group>
           </template>
         </el-table-column>
       </el-table>

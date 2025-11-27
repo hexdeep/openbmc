@@ -67,7 +67,7 @@ func (s *SwitchSerial) ShowInterface(timeout time.Duration) (map[string]bool, er
 func (s *SwitchSerial) OpenTTY() error {
 
 	s.Mu.Lock()
-	cmd := exec.Command("./ttyd.aarch64", "-W", "microcom", "-s", "115200", "/dev/ttyS3")
+	cmd := exec.Command("./ttyd.aarch64", "-p", "7600", "-W", "microcom", "-s", "115200", "/dev/ttyS3")
 	if err := cmd.Start(); err != nil {
 		return err
 	}

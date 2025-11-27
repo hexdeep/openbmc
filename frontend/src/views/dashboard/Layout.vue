@@ -21,7 +21,5 @@ import Temporary from './Temporary.vue';
 
     <temporary />
 
-    <optical-port />
-
   </div>
 </template>

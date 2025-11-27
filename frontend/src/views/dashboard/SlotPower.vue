@@ -3,6 +3,7 @@ import {request} from '@/utils/axios';
 import {ArrowDown, ArrowUp} from '@element-plus/icons-vue';
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
+import OpticalPort from './OpticalPort.vue';
 
 interface SubPower {
   id: string;
@@ -33,7 +34,8 @@ const { t } = useI18n({ messages: {
         {{t('refresh')}}
       </el-button>
     </div>
-    <div class="flex gap-4">
+    <div class="flex items-end gap-4">
+      <optical-port />
       <div v-for="pane in subPowers" class="flex flex-col gap-2 rounded-2xl p-4 bg-gray-100">
         <div v-for="drawer in pane" class="flex flex-col gap-2">
           <div class="flex gap-2 items-center">

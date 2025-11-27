@@ -14,6 +14,7 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 
 	type SlotStatus struct {
 		Slot     string  `json:"slot"`
+		Port     string  `json:"port"`
 		Active   bool    `json:"active"`
 		Mac      string  `json:"mac"`
 		IP       string  `json:"ip"`
@@ -62,10 +63,12 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 					if err != nil {
 						fmt.Printf("failed to get mem info: %v\n", err)
 					}
+					port, _ := h.Proc.SlotSerial.GetPort(slot)
 					uptime, _ := h.Proc.SlotSerial.GetUpTime(slot, timeout)
 					load, _ := h.Proc.SlotSerial.GetLoad(slot, timeout)
 					ch <- SlotStatus{
 						Slot:     slot,
+						Port:     port,
 						Active:   h.Proc.SlotSerial.IsActive(slot, timeout),
 						Mac:      mac,
 						IP:       ip,
@@ -100,6 +103,24 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 		}
 		time.Sleep(time.Second)
 	}
+}
+
+func (h *Handler) SlotOpenTTY(c echo.Context) error {
+
+	if err := h.Proc.SlotSerial.OpenTTY(c.Param("id")); err != nil {
+		return fmt.Errorf("failed to open tty: %w\n", err)
+	}
+
+	return c.JSON(200, Res("终端开启成功", true))
+}
+
+func (h *Handler) SlotCloseTTY(c echo.Context) error {
+
+	if err := h.Proc.SlotSerial.CloseTTY(c.Param("id")); err != nil {
+		return fmt.Errorf("failed to close tty: %w\n", err)
+	}
+
+	return c.JSON(200, Res("终端关闭成功", true))
 }
 
 /*

@@ -4,13 +4,12 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/samber/lo"
 )
 
 func (h *Handler) ListOpticalPort(c echo.Context) error {
 
 	type OpticalPort struct {
-		Port   string `json:"port"`
+		ID     string `json:"id"`
 		Active bool   `json:"active"`
 	}
 
@@ -19,7 +18,16 @@ func (h *Handler) ListOpticalPort(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, Res("", lo.Map([]string{"49", "50", "51", "52"}, func(item string, index int) *OpticalPort {
-		return &OpticalPort{Port: item, Active: interfaces[item]}
-	})))
+	ports := [][]OpticalPort{
+		{{ID: "50"}, {ID: "51"}},
+		{{ID: "49"}, {ID: "52"}},
+	}
+
+	for _, group := range ports {
+		for index, port := range group {
+			group[index].Active = interfaces[port.ID]
+		}
+	}
+
+	return c.JSON(200, Res("", ports))
 }
