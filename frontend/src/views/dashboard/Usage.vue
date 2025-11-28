@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {request} from '@/utils/axios'
 import {formatSize} from '@/utils/utils'
 import {useEventSource} from '@vueuse/core'
 import {computed, ref} from 'vue'
@@ -11,6 +12,11 @@ const { t } = useI18n({ messages: {
     disk: '硬盘',
     used: '使用',
     total: '总量',
+    bmcTty: 'BMC终端',
+    switchTty: '交换机终端',
+    open: '开启',
+    close: '关闭',
+    enter: '进入',
   },
 } })
 
@@ -29,6 +35,10 @@ const diskStatus = ref({
   used: 10000000000,
   total: 30000000000,
 })
+
+function toTerminal(port: string) {
+  return window.location.href = `http://${window.location.hostname}:${port}`
+}
 
 </script>
 
@@ -52,6 +62,36 @@ const diskStatus = ref({
         <div class="text-xs mt-2">{{t('used')}} {{formatSize(diskStatus.used)}}</div>
         <div class="text-xs mt-1">{{t('total')}} {{formatSize(diskStatus.total)}}</div>
       </el-progress>
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <div>{{t('bmcTty')}}</div>
+          <el-button-group>
+            <el-button @click="request('POST', '/bmc/opentty')" type="primary">
+              {{t('open')}}
+            </el-button>
+            <el-button @click="request('POST', '/bmc/closetty')" type="warning">
+              {{t('close')}}
+            </el-button>
+            <el-button @click="toTerminal('7500')" type="success">
+              {{t('enter')}}
+            </el-button>
+          </el-button-group>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div>{{t('switchTty')}}</div>
+          <el-button-group>
+            <el-button @click="request('POST', '/switch/opentty')" type="primary">
+              {{t('open')}}
+            </el-button>
+            <el-button @click="request('POST', '/switch/closetty')" type="warning">
+              {{t('close')}}
+            </el-button>
+            <el-button @click="toTerminal('7600')" type="success">
+              {{t('enter')}}
+            </el-button>
+          </el-button-group>
+        </div>
+      </div>
     </div>
   </div>
 </template>

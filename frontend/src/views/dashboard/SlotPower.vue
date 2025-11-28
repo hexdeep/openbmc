@@ -5,12 +5,18 @@ import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 import OpticalPort from './OpticalPort.vue';
 
-interface SubPower {
-  id: string;
-  active: boolean;
+interface Pane {
+  name: string;
+  drawers: {
+    name: string;
+    slots: {
+      id: string;
+      active: boolean;
+    }[];
+  }[];
 }
 
-const subPowers = ref<SubPower[][][]>([])
+const subPowers = ref<Pane[]>([])
 const loadSubPowers = () => request('GET', '/sub-power').then(v => subPowers.value = v)
 loadSubPowers()
 
@@ -37,14 +43,16 @@ const { t } = useI18n({ messages: {
     <div class="flex items-end gap-4">
       <optical-port />
       <div v-for="pane in subPowers" class="flex flex-col gap-2 rounded-2xl p-4 bg-gray-100">
-        <div v-for="drawer in pane" class="flex flex-col gap-2">
+        <div>{{pane.name}}</div>
+        <div v-for="drawer in pane.drawers" class="flex flex-col gap-2">
           <div class="flex gap-2 items-center">
+            <div>{{drawer.name}}</div>
             <el-button-group size="small">
-              <el-button :icon="ArrowUp" @click="drawer.forEach(slot => request('POST', `/slot/${slot.id}/power-on`).then(loadSubPowers))" />
-              <el-button :icon="ArrowDown" @click="drawer.forEach(slot => request('POST', `/slot/${slot.id}/power-off`).then(loadSubPowers))" />
+              <el-button :icon="ArrowUp" @click="drawer.slots.forEach(slot => request('POST', `/slot/${slot.id}/power-on`).then(loadSubPowers))" />
+              <el-button :icon="ArrowDown" @click="drawer.slots.forEach(slot => request('POST', `/slot/${slot.id}/power-off`).then(loadSubPowers))" />
             </el-button-group>
             <el-button
-              v-for="slot in drawer"
+              v-for="slot in drawer.slots"
               :key="slot.id"
               class="m-0!"
               :type="slot.active ? 'success' : 'warning'"

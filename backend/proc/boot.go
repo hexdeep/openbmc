@@ -3,34 +3,41 @@ package proc
 import (
 	"os"
 	"sync"
+	"time"
 )
 
-type BootOn struct {
+type SlotBootOn struct {
 	Mu sync.Mutex
 }
 
-func (b *BootOn) Do(id string) error {
+func (b *SlotBootOn) Do(id string) error {
 
 	if !IsSlotIDValid(id) {
 		return ErrInvalidID
 	}
 
 	b.Mu.Lock()
-	defer b.Mu.Unlock()
-	return os.WriteFile("/proc/hexdeep_sub_pwr/boot_on", []byte(id), 0)
+	time.Sleep(100 * time.Millisecond)
+	err := os.WriteFile("/proc/hexdeep_sub_pwr/boot_on", []byte(id), 0)
+	time.Sleep(100 * time.Millisecond)
+	b.Mu.Unlock()
+	return err
 }
 
-type BootOff struct {
+type SlotBootOff struct {
 	Mu sync.Mutex
 }
 
-func (b *BootOff) Do(id string) error {
+func (b *SlotBootOff) Do(id string) error {
 
 	if !IsSlotIDValid(id) {
 		return ErrInvalidID
 	}
 
 	b.Mu.Lock()
-	defer b.Mu.Unlock()
-	return os.WriteFile("/proc/hexdeep_sub_pwr/boot_off", []byte(id), 0)
+	time.Sleep(100 * time.Millisecond)
+	err := os.WriteFile("/proc/hexdeep_sub_pwr/boot_off", []byte(id), 0)
+	time.Sleep(100 * time.Millisecond)
+	b.Mu.Unlock()
+	return err
 }

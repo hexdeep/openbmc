@@ -20,7 +20,7 @@ const { t } = useI18n({ messages: {
     detail: '详情',
     updateSystem: '升级',
     openTerminal: '打开终端',
-    closeTerminal: '关闭',
+    closeTerminal: '关闭终端',
     enterTerminal: '进入',
     uptime: '开机时间',
   },
@@ -77,7 +77,7 @@ loadPoweredSlots()
         <el-table-column :label="t('status')">
           <template #default="{ row }">
             <el-tag :type="row.active ? 'success' : 'danger'">
-              {{row.active ? '运行' : '异常'}}
+              {{row.active ? '运行' : row.ttyActive ? '终端开启' : '异常'}}
             </el-tag>
           </template>
         </el-table-column>
@@ -102,15 +102,15 @@ loadPoweredSlots()
             <el-button type="danger" size="small" @click="request('POST', `/slot/${row.slot}/power-off`)">
               {{t('powerOff')}}
             </el-button>
-            <el-button type="success" size="small">
+            <el-button type="success" size="small" @click="request('POST', `/slot/${row.slot}/flash`)">
               {{t('updateSystem')}}
             </el-button>
             <el-button-group class="ml-2">
-              <el-button type="primary" size="small" @click="request('POST', `/slot/${row.slot}/opentty`)">
-                {{t('openTerminal')}}
-              </el-button>
-              <el-button type="warning" size="small" @click="request('POST', `/slot/${row.slot}/closetty`)">
+              <el-button v-if="row.ttyActive" type="warning" size="small" @click="request('POST', `/slot/${row.slot}/closetty`)">
                 {{t('closeTerminal')}}
+              </el-button>
+              <el-button v-else type="primary" size="small" @click="request('POST', `/slot/${row.slot}/opentty`)">
+                {{t('openTerminal')}}
               </el-button>
               <el-button type="success" size="small" @click="toTerminal(row.port)">
                 {{t('enterTerminal')}}

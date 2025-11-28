@@ -13,16 +13,17 @@ import (
 func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 
 	type SlotStatus struct {
-		Slot     string  `json:"slot"`
-		Port     string  `json:"port"`
-		Active   bool    `json:"active"`
-		Mac      string  `json:"mac"`
-		IP       string  `json:"ip"`
-		Temp     string  `json:"temp"`
-		MemUsed  int     `json:"memUsed"`
-		MemTotal int     `json:"memTotal"`
-		UpTime   float64 `json:"uptime"`
-		Load     float64 `json:"load"`
+		Slot      string  `json:"slot"`
+		Port      string  `json:"port"`
+		Active    bool    `json:"active"`
+		TTYActive bool    `json:"ttyActive"`
+		Mac       string  `json:"mac"`
+		IP        string  `json:"ip"`
+		Temp      string  `json:"temp"`
+		MemUsed   int     `json:"memUsed"`
+		MemTotal  int     `json:"memTotal"`
+		UpTime    float64 `json:"uptime"`
+		Load      float64 `json:"load"`
 	}
 
 	ctx := c.Request().Context()
@@ -49,34 +50,29 @@ func ListPoweredSlot(h *Handler, c echo.Context, send chan<- any) {
 				go func() {
 					defer wg.Done()
 					timeout := 100 * time.Millisecond
-					mac, ip, err := h.Proc.SlotSerial.GetMacIP(slot, timeout)
-					if err != nil {
-						fmt.Printf("failed to get mac and ip: %v\n", err)
-						mac, ip = "", ""
-					}
-					temp, err := h.Proc.SlotSerial.GetTemp(slot, timeout)
-					if err != nil {
-						fmt.Printf("failed to get temp: %v\n", err)
-						temp = ""
-					}
-					memUsed, memTotal, err := h.Proc.SlotSerial.GetMem(slot, timeout)
-					if err != nil {
-						fmt.Printf("failed to get mem info: %v\n", err)
+					mac, ip, _ := h.Proc.SlotSerial.GetMacIP(slot, timeout)
+					temp, _ := h.Proc.SlotSerial.GetTemp(slot, timeout)
+					memUsed, memTotal, _ := h.Proc.SlotSerial.GetMem(slot, timeout)
+					item, _ := h.Proc.SlotSerial.GetItem(slot)
+					var ttyActive bool
+					if item.TTY != nil {
+						ttyActive = true
 					}
 					port, _ := h.Proc.SlotSerial.GetPort(slot)
 					uptime, _ := h.Proc.SlotSerial.GetUpTime(slot, timeout)
 					load, _ := h.Proc.SlotSerial.GetLoad(slot, timeout)
 					ch <- SlotStatus{
-						Slot:     slot,
-						Port:     port,
-						Active:   h.Proc.SlotSerial.IsActive(slot, timeout),
-						Mac:      mac,
-						IP:       ip,
-						Temp:     temp,
-						MemUsed:  memUsed,
-						MemTotal: memTotal,
-						UpTime:   uptime,
-						Load:     load,
+						Slot:      slot,
+						TTYActive: ttyActive,
+						Port:      port,
+						Active:    h.Proc.SlotSerial.IsActive(slot, timeout),
+						Mac:       mac,
+						IP:        ip,
+						Temp:      temp,
+						MemUsed:   memUsed,
+						MemTotal:  memTotal,
+						UpTime:    uptime,
+						Load:      load,
 					}
 				}()
 			}

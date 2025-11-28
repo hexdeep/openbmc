@@ -7,8 +7,8 @@ type Proc struct {
 	MainPwrStatus MainPwrStatus
 	MainPwrOn     MainPwrOn
 	MainPwrOff    MainPwrOff
-	BootOn        BootOn
-	BootOff       BootOff
+	SlotBootOn    SlotBootOn
+	SlotBootOff   SlotBootOff
 	SlotSerial    SlotSerial
 	SwitchSerial  SwitchSerial
 	BMCSerial     BMCSerial

@@ -1,6 +1,7 @@
 package proc
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"os"
@@ -285,5 +286,15 @@ func (s *SlotSerial) CloseTTY(id string) error {
 
 	item.Mu.Unlock()
 	item.TTY = nil
+	return nil
+}
+
+func (t *SlotSerial) Flash(ctx context.Context) error {
+	cmd := exec.CommandContext(ctx, "./flash.sh")
+	result, err := cmd.Output()
+	if err != nil {
+		fmt.Println(string(result))
+		return err
+	}
 	return nil
 }
