@@ -40,7 +40,7 @@ func (s *SlotSerial) GetItem(id string) (*SlotSerialItem, error) {
 		return nil, ErrInvalidID
 	}
 
-	return &s.Items[slot], nil
+	return &s.Items[slot-1], nil
 }
 
 type SlotSerialItem struct {

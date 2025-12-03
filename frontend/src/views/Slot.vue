@@ -2,7 +2,7 @@
 import {request} from '@/utils/axios';
 import {formatSize} from '@/utils/utils';
 import {useEventSource} from '@vueuse/core';
-import {computed} from 'vue';
+import {computed, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 
 const { t } = useI18n({ messages: {
@@ -23,8 +23,16 @@ const { t } = useI18n({ messages: {
     closeTerminal: '关闭终端',
     enterTerminal: '进入',
     uptime: '开机时间',
+    powerOffConfirmTitle: '你确定要下电吗？',
+    flash: '刷机',
+    flashSelected: '刷机选中项',
+    selectedSlot: '已选择插槽',
+    image: '镜像',
+    selectImage: '选择镜像',
   },
 } })
+
+const selected = ref<string[]>([])
 
 const { data } = useEventSource('/api/powered-slot')
 const poweredSlots = computed(() => {
@@ -54,26 +62,32 @@ function formatDuration(seconds: number): string {
     return parts.join(" ");
 }
 
-function toTerminal(port: string) {
-  return window.location.href = `http://${window.location.hostname}:${port}`
-}
+const toTerminal = (port: string) => window.open(`http://${window.location.hostname}:${port}`, '_blank')
 
-/*
-const poweredSlots = ref<PoweredSlot[]>([])
-const loadPoweredSlots = () => request<PoweredSlot[]>('GET', '/powered-slot').then(v => poweredSlots.value = v.sort((a, b) => a.slot - b.slot))
-loadPoweredSlots()
-*/
+const isDialogOpen = ref(false)
+
 </script>
 
 <template>
   <div class="flex flex-col gap-4 p-4">
 
     <div class="card flex flex-col gap-4">
-      <div class="text-lg">
-        {{t('deviceListTitle')}}
+      <div class="flex items-center gap-4">
+        <div class="text-lg">{{t('deviceListTitle')}}</div>
+        <el-button @click="isDialogOpen = true">
+          {{t('flashSelected')}}
+        </el-button>
       </div>
       <el-table :data="poweredSlots" class="rounded-1xl">
-        <el-table-column :label="t('slot')" prop="slot" />
+        <el-table-column :width="50">
+          <template #default="{ row }">
+            <el-checkbox
+              :model-value="selected.some(v => v === row.slot)"
+              @update:model-value="v => v ? selected.push(row.slot) : selected.splice(selected.indexOf(row.slot), 1)"
+            />
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('slot')" prop="slot" :width="50" />
         <el-table-column :label="t('status')">
           <template #default="{ row }">
             <el-tag :type="row.active ? 'success' : 'danger'">
@@ -99,9 +113,13 @@ loadPoweredSlots()
         />
         <el-table-column :label="t('operation')" width="400">
           <template #default="{ row }">
-            <el-button type="danger" size="small" @click="request('POST', `/slot/${row.slot}/power-off`)">
-              {{t('powerOff')}}
-            </el-button>
+            <el-popconfirm :title="t('powerOffConfirmTitle')" @confirm="request('POST', `/slot/${row.slot}/power-off`)">
+              <template #reference>
+                <el-button type="danger" size="small">
+                  {{t('powerOff')}}
+                </el-button>
+              </template>
+            </el-popconfirm>
             <el-button type="success" size="small" @click="request('POST', `/slot/${row.slot}/flash`)">
               {{t('updateSystem')}}
             </el-button>
@@ -122,4 +140,23 @@ loadPoweredSlots()
     </div>
 
   </div>
+  <el-dialog v-model="isDialogOpen" :title="t('flash')">
+    <el-form>
+      <el-form-item :label="t('selectedSlot')">
+        {{selected.join(', ')}}
+      </el-form-item>
+      <el-form-item :label="t('image')">
+        <el-select :placeholder="t('selectImage')">
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="isDialogOpen = false">
+        {{t('cancel')}}
+      </el-button>
+      <el-button>
+        {{t('confirm')}}
+      </el-button>
+    </template>
+  </el-dialog>
 </template>

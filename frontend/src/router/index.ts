@@ -25,7 +25,7 @@ const router = createRouter({
         },
         {
           path: 'switch',
-          component: () => import('@/views/Switch.vue'),
+          component: () => import('@/views/switch/Layout.vue'),
         },
         {
           path: 'images',

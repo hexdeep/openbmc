@@ -13,7 +13,6 @@ const { t } = useI18n({ messages: {
     used: '使用',
     total: '总量',
     bmcTty: 'BMC终端',
-    switchTty: '交换机终端',
     open: '开启',
     close: '关闭',
     enter: '进入',
@@ -36,9 +35,7 @@ const diskStatus = ref({
   total: 30000000000,
 })
 
-function toTerminal(port: string) {
-  return window.location.href = `http://${window.location.hostname}:${port}`
-}
+const toTerminal = (port: string) => window.open(`http://${window.location.hostname}:${port}`, '_blank')
 
 </script>
 
@@ -73,20 +70,6 @@ function toTerminal(port: string) {
               {{t('close')}}
             </el-button>
             <el-button @click="toTerminal('7500')" type="success">
-              {{t('enter')}}
-            </el-button>
-          </el-button-group>
-        </div>
-        <div class="flex flex-col gap-2">
-          <div>{{t('switchTty')}}</div>
-          <el-button-group>
-            <el-button @click="request('POST', '/switch/opentty')" type="primary">
-              {{t('open')}}
-            </el-button>
-            <el-button @click="request('POST', '/switch/closetty')" type="warning">
-              {{t('close')}}
-            </el-button>
-            <el-button @click="toTerminal('7600')" type="success">
               {{t('enter')}}
             </el-button>
           </el-button-group>

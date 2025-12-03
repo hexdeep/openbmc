@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import Usage from './Usage.vue';
-import Fan from './Fan.vue';
 import Power from './Power.vue';
-import OpticalPort from './OpticalPort.vue';
 import SlotPower from './SlotPower.vue';
 
 </script>
@@ -15,8 +13,6 @@ import SlotPower from './SlotPower.vue';
     <power />
 
     <slot-power />
-
-    <fan />
 
   </div>
 </template>
