@@ -2,6 +2,10 @@ package handler
 
 import "github.com/labstack/echo/v4"
 
+type Switcher interface {
+	OpticsStatus() (map[string]bool, error)
+}
+
 func (h *Handler) SwitchOpenTTY(c echo.Context) error {
 
 	if err := h.Proc.SwitchSerial.OpenTTY(); err != nil {

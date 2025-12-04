@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"strconv"
@@ -13,12 +14,18 @@ import (
 type Sloter interface {
 	PowerOn(id string) error
 	PowerOff(id string) error
+	BootOn(id string) error
+	BootOff(id string) error
 	PowerStatus() (map[string]bool, error)
-	IsActive(id string) bool
+	IsActive(id string, ctx context.Context) bool
+	GetMAC(id string, ctx context.Context) (string, error)
+	GetIP(id string, ctx context.Context) (string, error)
+	GetTemp(id string, ctx context.Context) (string, error)
+	GetMem(id string, ctx context.Context) (int, int, error)
 }
 
 type SlotHandler struct {
-	Sloter
+	Sloter Sloter
 }
 
 func NewSlotHandler(sloter Sloter) *SlotHandler {

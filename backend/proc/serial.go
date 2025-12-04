@@ -1,6 +1,7 @@
 package proc
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"time"
@@ -8,7 +9,11 @@ import (
 	"go.bug.st/serial"
 )
 
-func SerialCommand(mode *serial.Mode, portName string, timeout time.Duration, command string) (string, error) {
+func SerialCommand(mode *serial.Mode, portName string, ctx context.Context, command string) (string, error) {
+
+	if strings.HasSuffix(command, "\n") {
+		command = command + "\n"
+	}
 
 	port, err := serial.Open(portName, mode)
 	if err != nil {
@@ -21,10 +26,10 @@ func SerialCommand(mode *serial.Mode, portName string, timeout time.Duration, co
 		return "", err
 	}
 
-	port.SetReadTimeout(timeout)
-
 	buf := make([]byte, 256)
 	result := make([]byte, 0)
+
+	port.SetReadTimeout(time.Second)
 
 	for {
 		n, err := port.Read(buf)

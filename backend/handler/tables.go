@@ -13,7 +13,7 @@ type Token struct {
 	ExpiresAt time.Time `gorm:"not null;comment:过期时间"`
 }
 
-type Log struct {
+type Loga struct {
 	ID        uint      `gorm:"primarykey;comment:标识"`
 	CreatedAt time.Time `gorm:"not null;comment:创建时间"`
 	ClientIP  string    `gorm:"type:VARCHAR(50);not null;comment:客户端地址"`
